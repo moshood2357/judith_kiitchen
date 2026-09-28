@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitchen Display — Judith Kitchen</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f6f5;
+            color: #0f172a;
+            min-height: 100vh;
+        }
+
+        .kitchen-header {
+            background: #ffffff;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8e6;
+        }
+
+        .kitchen-header h1 {
+            font-size: 1.4rem;
+            color: #0f5c2e;
+            font-weight: 700;
+        }
+
+        .kitchen-header .clock {
+            font-size: 1.1rem;
+            color: #64748b;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .tab-btn {
+            padding: 8px 20px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #0f7a3d;
+            color: #fff;
+        }
+
+        .tab-btn.inactive {
+            background: #eef2f1;
+            color: #64748b;
+        }
+
+        .tab-btn.inactive:hover {
+            background: #dde5e2;
+            color: #0f172a;
+        }
+
+        .orders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 24px;
+        }
+
+        .order-card {
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+            position: relative;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .order-card.urgent {
+            border-color: #ef4444;
+            box-shadow: 0 2px 14px rgba(239, 68, 68, 0.12);
+        }
+
+        .order-card.warning {
+            border-color: #f59e0b;
+            box-shadow: 0 2px 14px rgba(245, 158, 11, 0.12);
+        }
+
+        .order-card.done {
+            border-color: #22c55e;
+            opacity: 0.75;
+            background: #f6fdf9;
+        }
+
+        .order-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 14px;
+        }
+
+        .order-number {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .order-meta {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .delivery-badge {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .delivery-badge.express {
+            background: #fef9c3;
+            color: #854d0e;
+        }
+
+        .delivery-badge.standard {
+            background: #dcfce7;
+            color: #0f5c2e;
+        }
+
+        .delivery-badge.delivery {
+            background: #dcfce7;
+            color: #0f5c2e;
+        }
+
+        .delivery-badge.pickup {
+            background: #ede9fe;
+            color: #6d28d9;
+        }
+
+        .pickup-time-note {
+            font-size: 0.8rem;
+            color: #6d28d9;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .items-list {
+            list-style: none;
+            margin: 12px 0;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 12px;
+        }
+
+        .items-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 0.9rem;
+            color: #334155;
+        }
+
+        .items-list li span.qty {
+            background: #eef2f1;
+            border-radius: 4px;
+            padding: 1px 8px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .timer-section {
+            margin-top: 14px;
+        }
+
+        .timer-display {
+            font-size: 2.2rem;
+            font-weight: 700;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+            color: #0f172a;
+            margin: 8px 0;
+        }
+
+        .timer-display.warning {
+            color: #b45309;
+        }
+
+        .timer-display.urgent {
+            color: #dc2626;
+        }
+
+        .timer-display.done {
+            color: #16a34a;
+        }
+
+        .timer-bar-bg {
+            background: #eef2f1;
+            border-radius: 999px;
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .timer-bar {
+            height: 100%;
+            border-radius: 999px;
+            background: #0f7a3d;
+            transition: width 1s linear, background 0.3s;
+        }
+
+        .timer-bar.warning {
+            background: #f59e0b;
+        }
+
+        .timer-bar.urgent {
+            background: #ef4444;
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 10px;
+            background: #0f7a3d;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .start-btn:hover {
+            background: #0c632f;
+        }
+
+        .start-btn.done-btn {
+            background: #22c55e;
+            cursor: default;
+        }
+
+        .prep-time-label {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 6px;
+        }
+
+        .add-time-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .add-time-btn {
+            flex: 1;
+            padding: 7px 0;
+            background: #f1f5f4;
+            color: #0f172a;
+            border: 1px solid #d9e2df;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .add-time-btn:hover {
+            background: #f59e0b;
+            border-color: #f59e0b;
+            color: #fff;
+        }
+
+        .add-time-btn:disabled {
+            opacity: 0.4;
+            cursor: default;
+            background: #f1f5f4;
+            border-color: #d9e2df;
+            color: #0f172a;
+        }
+
+        .add-time-custom-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .add-time-input {
+            width: 70px;
+            padding: 7px 8px;
+            background: #ffffff;
+            color: #0f172a;
+            border: 1px solid #d9e2df;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .add-time-input::-webkit-outer-spin-button,
+        .add-time-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .add-time-custom-btn {
+            flex: 1;
+            padding: 7px 0;
+            background: #0f7a3d;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .add-time-custom-btn:hover {
+            background: #0c632f;
+        }
+
+        .add-time-custom-btn:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .completed-time {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state h2 {
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+            color: #334155;
+        }
+
+        #kitchen-toast {
+            display: none;
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            background: #0f7a3d;
+            color: #fff;
+            padding: 14px 22px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            z-index: 9999;
+            box-shadow: 0 8px 30px rgba(15, 23, 42, 0.15);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <audio id="kitchen-sound" preload="auto">
+        <source src="/static/sounds/order.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="kitchen-toast">🍽 New order incoming!</div>
+
+    <div class="kitchen-header">
+        <h1>🍽 Kitchen Display</h1>
+        <div class="header-right">
+            <button class="tab-btn active" id="tab-current" onclick="switchTab('current')">Current</button>
+            <button class="tab-btn inactive" id="tab-history" onclick="switchTab('history')">History</button>
+            <div class="clock" id="wall-clock"></div>
+        </div>
+    </div>
+
+    <!-- CURRENT ORDERS -->
+    <div id="view-current">
+        <div class="orders-grid" id="orders-grid">
+            {% if orders %}
+            {% for order in orders %}
+            <div class="order-card" id="card-{{ order.id }}">
+                <div class="order-card-header">
+                    <div>
+                        <div class="order-number">{{ order.order_number }}</div>
+                        <div class="order-meta">
+                            {{ order.address.full_name if order.address else 'Guest' }} •
+                            {{ order.created_at.strftime("%I:%M %p") }}
+                        </div>
+                        {% if order.fulfillment_type == 'pickup' and order.pickup_time %}
+                        <div class="pickup-time-note">🏬 Pickup at {{ order.pickup_time }}</div>
+                        {% endif %}
+                    </div>
+                    {% if order.fulfillment_type == 'pickup' %}
+                    <span class="delivery-badge pickup">Pickup</span>
+                    {% else %}
+                    <span class="delivery-badge delivery">Delivery</span>
+                    {% endif %}
+                </div>
+
+                <ul class="items-list">
+                    {% for item in order.items %}
+                    <li>
+                        <span>{{ item.product_name }}</span>
+                        <span class="qty">x{{ item.quantity }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <div class="timer-section">
+                    <div class="prep-time-label" id="preplabel-{{ order.id }}">
+                        Prep time: {{ order.prep_time or '—' }} min
+                    </div>
+                    <div class="timer-display" id="timer-{{ order.id }}">
+                        {% if order.prep_time %}
+                        {{ "%02d:%02d"|format(order.prep_time, 0) }}
+                        {% else %}
+                        --:--
+                        {% endif %}
+                    </div>
+                    <div class="timer-bar-bg">
+                        <div class="timer-bar" id="bar-{{ order.id }}" style="width:100%"></div>
+                    </div>
+                    <div class="add-time-row" id="addtime-{{ order.id }}">
+                        <button class="add-time-btn" onclick="addTime({{ order.id }}, 2)">+2 min</button>
+                        <button class="add-time-btn" onclick="addTime({{ order.id }}, 5)">+5 min</button>
+                    </div>
+                    <div class="add-time-custom-row" id="addtimecustom-{{ order.id }}">
+                        <input type="number" class="add-time-input" id="addtimeinput-{{ order.id }}"
+                            min="1" max="180" placeholder="mins">
+                        <button class="add-time-custom-btn" onclick="addCustomTime({{ order.id }})">Add time</button>
+                    </div>
+                    <button class="start-btn" id="btn-{{ order.id }}" data-order-id="{{ order.id }}"
+                        data-prep-time="{{ order.prep_time | int if order.prep_time else 0 }}"
+                        onclick="startTimer(this.dataset.orderId, this.dataset.prepTime)">
+                        ▶ Start Timer
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="empty-state" id="empty-state">
+                <h2>No active orders</h2>
+                <p>Accepted orders will appear here in real time.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div id="view-history" style="display:none;">
+        <div class="orders-grid" id="history-grid">
+            <div class="empty-state" id="history-empty">
+                <h2>No completed orders yet</h2>
+                <p>Completed orders will appear here.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================
+        // WALL CLOCK
+        // =========================
+        function updateClock() {
+            const now = new Date();
+            document.getElementById("wall-clock").innerText =
+                now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // =========================
+        // TAB SWITCHING
+        // =========================
+        function switchTab(tab) {
+            const current = document.getElementById("view-current");
+            const history = document.getElementById("view-history");
+            const btnCurrent = document.getElementById("tab-current");
+            const btnHistory = document.getElementById("tab-history");
+
+            if (tab === "current") {
+                current.style.display = "block";
+                history.style.display = "none";
+                btnCurrent.className = "tab-btn active";
+                btnHistory.className = "tab-btn inactive";
+            } else {
+                current.style.display = "none";
+                history.style.display = "block";
+                btnCurrent.className = "tab-btn inactive";
+                btnHistory.className = "tab-btn active";
+                loadHistory();
+            }
+        }
+
+        // =========================
+        // LOAD HISTORY FROM SERVER
+        // =========================
+        function loadHistory() {
+            fetch("/kitchen/history-orders")
+                .then(res => res.json())
+                .then(data => {
+                    const grid = document.getElementById("history-grid");
+                    const empty = document.getElementById("history-empty");
+
+                    grid.querySelectorAll(".order-card").forEach(c => c.remove());
+
+                    if (!data.orders.length) {
+                        if (empty) empty.style.display = "block";
+                        return;
+                    }
+
+                    if (empty) empty.style.display = "none";
+
+                    data.orders.forEach(order => {
+                        const itemsHtml = order.items.map(i =>
+                            `<li style="display:flex;justify-content:space-between;padding:5px 0;font-size:0.9rem;color:#cbd5e1;">
+                                <span>${i.name}</span>
+                                <span style="background:#334155;border-radius:4px;padding:1px 8px;font-weight:700;color:#f8fafc;">x${i.quantity}</span>
+                            </li>`
+                        ).join("");
+
+                        const card = document.createElement("div");
+                        card.className = "order-card done";
+                        const badgeHtml = order.fulfillment_type === "pickup"
+                            ? `<span class="delivery-badge pickup">Pickup</span>`
+                            : `<span class="delivery-badge delivery">Delivery</span>`;
+                        card.innerHTML = `
+                            <div class="order-card-header">
+                                <div>
+                                    <div class="order-number">${order.order_number}</div>
+                                    <div class="order-meta">${order.customer} • ${order.created_at}</div>
+                                    ${order.fulfillment_type === "pickup" && order.pickup_time ? `<div class="pickup-time-note">🏬 Pickup at ${order.pickup_time}</div>` : ""}
+                                </div>
+                                ${badgeHtml}
+                            </div>
+                            <ul class="items-list">${itemsHtml}</ul>
+                            <div class="completed-time">✓ Completed at ${order.completed_at}</div>
+                        `;
+                        grid.prepend(card);
+                    });
+                })
+                .catch(() => { });
+        }
+
+        // =========================
+        // TRACKING SETS
+        // =========================
+        const localCompleted = new Set();
+        const addedCards = new Set();
+
+        // pre-populate with cards already rendered by server
+        document.querySelectorAll(".order-card[id^='card-']").forEach(card => {
+            const id = parseInt(card.id.replace("card-", ""));
+            if (id) addedCards.add(id);
+        });
+
+        // =========================
+        // MARK COMPLETED (UI)
+        // =========================
+        function markCompleted(orderId) {
+            const btn = document.getElementById(`btn-${orderId}`);
+            const display = document.getElementById(`timer-${orderId}`);
+            const bar = document.getElementById(`bar-${orderId}`);
+            const card = document.getElementById(`card-${orderId}`);
+            const addTimeRow = document.getElementById(`addtime-${orderId}`);
+            const addTimeCustomRow = document.getElementById(`addtimecustom-${orderId}`);
+
+            if (!display) return;
+
+            display.innerText = "DONE ✓";
+            display.className = "timer-display done";
+            bar.style.width = "100%";
+            bar.className = "timer-bar";
+            bar.style.background = "#22c55e";
+            card.className = "order-card done";
+
+            if (addTimeRow) addTimeRow.style.display = "none";
+            if (addTimeCustomRow) addTimeCustomRow.style.display = "none";
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = "✓ Completed";
+                btn.classList.add("done-btn");
+            }
+        }
+
+        // =========================
+        // MOVE TO HISTORY
+        // =========================
+        function moveToHistory(orderId) {
+            localCompleted.add(orderId);
+            addedCards.delete(orderId);
+
+            const card = document.getElementById(`card-${orderId}`);
+            if (!card) return;
+
+            const historyGrid = document.getElementById("history-grid");
+            const historyEmpty = document.getElementById("history-empty");
+
+            if (historyEmpty) historyEmpty.style.display = "none";
+
+            // clone card for history
+            const historyCard = card.cloneNode(true);
+            historyCard.id = `history-card-${orderId}`;
+            historyCard.className = "order-card done";
+
+            const timerSection = historyCard.querySelector(".timer-section");
+            if (timerSection) {
+                timerSection.innerHTML = `
+                    <div class="completed-time">
+                        ✓ Completed at ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </div>
+                `;
+            }
+
+            if (!document.getElementById(`history-card-${orderId}`)) {
+                historyGrid.prepend(historyCard);
+            }
+
+            card.remove();
+
+            const grid = document.getElementById("orders-grid");
+            const remaining = grid.querySelectorAll(".order-card");
+            if (remaining.length === 0) {
+                const emptyState = document.getElementById("empty-state");
+                if (emptyState) emptyState.style.display = "block";
+            }
+        }
+
+        // =========================
+        // UPDATE TIMER UI
+        // =========================
+        function updateTimerUI(orderId, remaining, totalSeconds, isRunning = true) {
+            const display = document.getElementById(`timer-${orderId}`);
+            const bar = document.getElementById(`bar-${orderId}`);
+            const card = document.getElementById(`card-${orderId}`);
+            const btn = document.getElementById(`btn-${orderId}`);
+
+            if (!display) return;
+
+            const mins = Math.floor(remaining / 60);
+            const secs = remaining % 60;
+            const pct = totalSeconds > 0 ? (remaining / totalSeconds) * 100 : 0;
+
+            display.innerText = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+            bar.style.width = pct + "%";
+
+            // only touch the Start Timer button if the timer is actually
+            // running — otherwise a not-yet-started order would visually
+            // flip to "Running..." just from adding time before it started
+            if (isRunning && btn && !btn.classList.contains("done-btn")) {
+                btn.disabled = true;
+                btn.innerText = "⏱ Running...";
+            }
+
+            if (pct <= 20) {
+                display.className = "timer-display urgent";
+                bar.className = "timer-bar urgent";
+                card.className = "order-card urgent";
+            } else if (pct <= 40) {
+                display.className = "timer-display warning";
+                bar.className = "timer-bar warning";
+                card.className = "order-card warning";
+            } else {
+                display.className = "timer-display";
+                bar.className = "timer-bar";
+                if (!card.classList.contains("done")) card.className = "order-card";
+            }
+        }
+
+        // =========================
+        // MASTER SYNC — every second
+        // =========================
+        const lastAgeCheck = {};
+
+        function syncAllTimers() {
+            fetch("/kitchen/all-timer-states")
+                .then(res => res.json())
+                .then(data => {
+                    const states = data.states;
+
+                    Object.keys(states).forEach(orderIdStr => {
+                        const orderId = parseInt(orderIdStr);
+                        const state = states[orderIdStr];
+
+                        const card = document.getElementById(`card-${orderId}`);
+                        if (!card) return;
+
+                        if (state.timer_status === "completed") {
+
+                            if (!localCompleted.has(orderId)) {
+                                localCompleted.add(orderId);
+                                markCompleted(orderId);
+                            }
+
+                            // only check age once per minute per order
+                            const now = Date.now();
+                            if (!lastAgeCheck[orderId] || now - lastAgeCheck[orderId] > 60000) {
+                                lastAgeCheck[orderId] = now;
+
+                                fetch(`/kitchen/order-completed-age/${orderId}`)
+                                    .then(r => r.json())
+                                    .then(d => {
+                                        if (d.minutes_since_completed >= 10) {
+                                            moveToHistory(orderId);
+                                        }
+                                    })
+                                    .catch(() => { });
+                            }
+
+                        } else if (state.timer_status === "running") {
+                            if (state.remaining <= 0 && !localCompleted.has(orderId)) {
+                                localCompleted.add(orderId);
+                                markCompleted(orderId);
+
+                                fetch(`/kitchen/complete-order/${orderId}`, {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" }
+                                }).catch(() => { });
+
+                            } else if (state.remaining > 0) {
+                                updateTimerUI(orderId, state.remaining, state.total_seconds);
+                            }
+                        }
+                    });
+                })
+                .catch(() => { });
+        }
+
+        setInterval(syncAllTimers, 1000);
+
+        // =========================
+        // START TIMER
+        // =========================
+        function startTimer(orderId, prepMinutes) {
+            orderId = parseInt(orderId);
+            prepMinutes = parseInt(prepMinutes);
+
+            if (!prepMinutes || prepMinutes < 1) return;
+
+            const btn = document.getElementById(`btn-${orderId}`);
+            if (btn.classList.contains("done-btn")) return;
+
+            btn.disabled = true;
+            btn.innerText = "⏱ Starting...";
+
+            fetch(`/kitchen/start-timer/${orderId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log("Timer started on server");
+                    }
+                })
+                .catch(() => { });
+        }
+
+        // =========================
+        // ADD TIME
+        // =========================
+        function addTime(orderId, minutes) {
+            orderId = parseInt(orderId);
+            minutes = parseInt(minutes);
+
+            const row = document.getElementById(`addtime-${orderId}`);
+            const customRow = document.getElementById(`addtimecustom-${orderId}`);
+
+            function setDisabled(state) {
+                if (row) row.querySelectorAll("button").forEach(b => b.disabled = state);
+                if (customRow) customRow.querySelectorAll("button, input").forEach(el => el.disabled = state);
+            }
+
+            setDisabled(true);
+
+            fetch(`/kitchen/add-time/${orderId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ minutes })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    setDisabled(false);
+
+                    if (!data.success) return;
+
+                    const label = document.getElementById(`preplabel-${orderId}`);
+                    if (label) label.innerText = `Prep time: ${data.prep_time} min`;
+
+                    updateTimerUI(orderId, data.remaining, data.total_seconds, data.timer_status === "running");
+                })
+                .catch(() => {
+                    setDisabled(false);
+                });
+        }
+
+        function addCustomTime(orderId) {
+            orderId = parseInt(orderId);
+            const input = document.getElementById(`addtimeinput-${orderId}`);
+            if (!input) return;
+
+            const minutes = parseInt(input.value);
+
+            if (!minutes || minutes <= 0) {
+                input.focus();
+                return;
+            }
+            if (minutes > 180) {
+                alert("That's more than 3 hours — please double-check the amount.");
+                input.focus();
+                return;
+            }
+
+            addTime(orderId, minutes);
+            input.value = "";
+        }
+
+        // =========================
+        // POLLING — NEW ORDERS
+        // =========================
+        const sound = document.getElementById("kitchen-sound");
+        const toast = document.getElementById("kitchen-toast");
+
+        function pollKitchenOrders() {
+            fetch("/kitchen/accepted-orders")
+                .then(res => res.json())
+                .then(data => {
+                    data.orders.forEach(order => {
+                        // skip if already on page or already completed
+                        if (addedCards.has(order.id)) return;
+                        if (localCompleted.has(order.id)) return;
+
+                        addedCards.add(order.id);
+
+                        if (sound) {
+                            sound.currentTime = 0;
+                            sound.play().catch(() => { });
+                        }
+
+                        toast.style.display = "block";
+                        setTimeout(() => { toast.style.display = "none"; }, 5000);
+
+                        const emptyState = document.getElementById("empty-state");
+                        if (emptyState) emptyState.style.display = "none";
+
+                        const itemsHtml = order.items.map(i =>
+                            `<li style="display:flex;justify-content:space-between;padding:5px 0;font-size:0.9rem;color:#cbd5e1;">
+                                <span>${i.name}</span>
+                                <span style="background:#334155;border-radius:4px;padding:1px 8px;font-weight:700;color:#f8fafc;">x${i.quantity}</span>
+                            </li>`
+                        ).join("");
+
+                        const card = document.createElement("div");
+                        card.className = "order-card";
+                        card.id = `card-${order.id}`;
+                        const liveBadgeHtml = order.fulfillment_type === "pickup"
+                            ? `<span class="delivery-badge pickup">Pickup</span>`
+                            : `<span class="delivery-badge delivery">Delivery</span>`;
+                        card.innerHTML = `
+                            <div class="order-card-header">
+                                <div>
+                                    <div class="order-number">${order.order_number}</div>
+                                    <div class="order-meta">${order.customer} • ${order.created_at}</div>
+                                    ${order.fulfillment_type === "pickup" && order.pickup_time ? `<div class="pickup-time-note">🏬 Pickup at ${order.pickup_time}</div>` : ""}
+                                </div>
+                                ${liveBadgeHtml}
+                            </div>
+                            <ul class="items-list">${itemsHtml}</ul>
+                            <div class="timer-section">
+                                <div class="prep-time-label" id="preplabel-${order.id}">Prep time: ${order.prep_time || "—"} min</div>
+                                <div class="timer-display" id="timer-${order.id}">
+                                    ${order.prep_time ? String(order.prep_time).padStart(2, "0") + ":00" : "--:--"}
+                                </div>
+                                <div class="timer-bar-bg">
+                                    <div class="timer-bar" id="bar-${order.id}" style="width:100%"></div>
+                                </div>
+                                <div class="add-time-row" id="addtime-${order.id}">
+                                    <button class="add-time-btn" onclick="addTime(${order.id}, 2)">+2 min</button>
+                                    <button class="add-time-btn" onclick="addTime(${order.id}, 5)">+5 min</button>
+                                </div>
+                                <div class="add-time-custom-row" id="addtimecustom-${order.id}">
+                                    <input type="number" class="add-time-input" id="addtimeinput-${order.id}"
+                                        min="1" max="180" placeholder="mins">
+                                    <button class="add-time-custom-btn" onclick="addCustomTime(${order.id})">Add time</button>
+                                </div>
+                                <button class="start-btn" id="btn-${order.id}"
+                                    data-order-id="${order.id}"
+                                    data-prep-time="${order.prep_time || 0}"
+                                    onclick="startTimer(this.dataset.orderId, this.dataset.prepTime)">
+                                    ▶ Start Prep Timer
+                                </button>
+                            </div>
+                        `;
+
+                        document.getElementById("orders-grid").prepend(card);
+                    });
+                })
+                .catch(() => { });
+        }
+
+        setInterval(pollKitchenOrders, 5000);
+
+        document.addEventListener("DOMContentLoaded", () => {
+            syncAllTimers();
+            pollKitchenOrders();
+        });
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us | Judith Kitchen{% endblock %}
+
+{% block content %}
+
+<section class="contact-hero py-5">
+    <div class="container text-center text-white">
+        <h1 class="fw-bold mb-2">We’d Love to Hear From You</h1>
+        <p class="opacity-75">
+            Questions, feedback, or cravings? Reach out anytime.
+        </p>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+
+        <div class="row g-5">
+
+            <!-- =========================
+            FORM
+            ========================= -->
+            <div class="col-lg-7">
+
+                <div class="contact-card p-4 p-lg-5">
+
+                    <h4 class="fw-bold mb-3">Send a Message</h4>
+                    <p class="text-muted small mb-4">
+                        Fill the form and our team will get back to you shortly.
+                    </p>
+
+                    <form method="POST" action="{{ url_for('main.contact') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+                                <input type="text" name="first_name" class="form-control form-control-lg"
+                                    placeholder="First Name" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <input type="text" name="last_name" class="form-control form-control-lg"
+                                    placeholder="Last Name" required>
+                            </div>
+
+                            <div class="col-12">
+                                <input type="email" name="email" class="form-control form-control-lg"
+                                    placeholder="Email Address" required>
+                            </div>
+
+                            <div class="col-12">
+                                <input type="tel" name="phone" class="form-control form-control-lg"
+                                    placeholder="Phone (optional)">
+                            </div>
+
+                            <div class="col-12">
+                                <select name="subject" class="form-select form-select-lg" required>
+                                    <option value="">Select Subject</option>
+                                    <option>Order enquiry</option>
+                                    <option>Delivery issue</option>
+                                    <option>General question</option>
+                                    <option>Business enquiry</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <textarea name="message" rows="5" class="form-control form-control-lg"
+                                    placeholder="Write your message..." required></textarea>
+                            </div>
+
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 mt-4 py-3 rounded-pill fw-semibold">
+                            Send Message
+                        </button>
+
+                        <small class="text-muted d-block mt-3 text-center">
+                            Your information is safe and only used to respond to your enquiry.
+                        </small>
+
+                    </form>
+                </div>
+            </div>
+
+            <!-- =========================
+            CONTACT INFO
+            ========================= -->
+            <div class="col-lg-5">
+
+                <div class="d-flex flex-column gap-4">
+
+                    <div class="info-card">
+                        <h6>📞 Call Us</h6>
+                        <p>+44 123 456 7890</p>
+                        <small>Available during opening hours</small>
+                    </div>
+
+                    <div class="info-card">
+                        <h6>📧 Email</h6>
+                        <p>support@judithkitchen.com</p>
+                        <small>Response within 24 hours</small>
+                    </div>
+
+                    <div class="info-card">
+                        <h6>📍 Address</h6>
+                        <p>
+                            24 High Street<br>
+                            Cheltenham<br>
+                            Gloucestershire<br>
+                            GL50 1AA<br>
+                            United Kingdom
+                        </p>
+                    </div>
+
+                    <div class="info-card">
+                        <h6>🕒 Opening Hours</h6>
+                        <p class="mb-1">Mon – Fri: 9:00 AM – 8:00 PM</p>
+                        <p class="mb-1">Saturday: 10:00 AM – 6:00 PM</p>
+                        <p class="mb-0">Sunday: Closed</p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<style>
+    /* HERO */
+    .contact-hero {
+        background: linear-gradient(135deg, #117843, #1f7a4d);
+    }
+
+    /* FORM CARD */
+    .contact-card {
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    /* INPUTS */
+    .form-control,
+    .form-select {
+        border-radius: 12px;
+        border: 1px solid #eee;
+        padding: 12px 14px;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #117843;
+        box-shadow: 0 0 0 2px rgba(17, 120, 67, 0.1);
+    }
+
+    /* INFO CARDS */
+    .info-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .info-card h6 {
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .info-card p {
+        margin-bottom: 4px;
+        font-weight: 500;
+    }
+
+    .info-card small {
+        color: #6c757d;
+    }
+
+    /* BUTTON */
+    .btn-success {
+        background-color: #117843;
+        border: none;
+    }
+
+    .btn-success:hover {
+        background-color: #0f6a3b;
+    }
+</style>
+
+{% endblock %}

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Order {{ number }} · Judith's Kitchen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+  /* Judith Ethnic Food Store design tokens (from static/css/style.css) */
+  :root {
+    --green-900: #0a3d1f; --green-800: #0f5c2e; --green-700: #146b35; --green-600: #1a8042;
+    --green-500: #22a355; --green-100: #d4f5e2; --green-50: #f0faf4;
+    --gold: #c9922a; --gold-lt: #f0c060;
+    --slate-900: #0f172a; --slate-700: #334155; --slate-500: #64748b;
+    --slate-300: #cbd5e1; --slate-100: #f1f5f9; --slate-50: #f8fafc; --white: #ffffff;
+    --error: #dc2626; --product: #117843;
+    --radius-sm: 6px; --radius: 12px; --radius-lg: 20px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+    --shadow: 0 4px 16px rgba(0,0,0,.10);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,.14);
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+    --transition: 220ms cubic-bezier(.4,0,.2,1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body); color: var(--slate-900); background: var(--slate-50);
+    line-height: 1.6; -webkit-font-smoothing: antialiased; min-height: 100vh;
+    font-variant-numeric: tabular-nums;
+    display: grid; place-items: center; padding: 24px 16px;
+  }
+  .card {
+    background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+    padding: 36px 32px; width: 100%; max-width: 440px; text-align: center;
+    border-top: 6px solid var(--green-700);
+  }
+  .brand { font-family: var(--font-display); font-weight: 700; font-size: 22px; color: var(--green-900); }
+  .hint { color: var(--slate-500); margin-top: 18px; font-size: .95rem; }
+  .num {
+    font-family: var(--font-display); font-weight: 700; line-height: 1.05;
+    font-size: clamp(30px, 11vw, 52px); white-space: nowrap;
+    color: var(--green-700); margin: 10px 0 20px; letter-spacing: -0.01em;
+  }
+  ul { list-style: none; text-align: left; border-top: 1px dashed var(--slate-300); padding-top: 14px; }
+  li { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; font-size: .95rem; }
+  .sum { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 10px;
+         border-top: 1px solid var(--slate-100); font-weight: 700; font-size: 1.1rem; }
+  .meta { margin-top: 10px; text-align: left; }
+  .meta span {
+    display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 9999px;
+    font-size: .78rem; font-weight: 600; background: var(--green-100); color: var(--green-800);
+  }
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 26px; }
+  .actions a, .actions button {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 13px 20px; border-radius: 9999px; cursor: pointer;
+    font: inherit; font-weight: 600; font-size: .95rem; text-decoration: none;
+    border: 2px solid var(--green-700); background: transparent; color: var(--green-700);
+    transition: all var(--transition);
+  }
+  .actions button:hover { background: var(--green-50); }
+  .actions .primary { background: var(--green-700); color: var(--white); }
+  .actions .primary:hover { background: var(--green-900); border-color: var(--green-900); }
+  :focus-visible { outline: 3px solid rgba(34,163,85,.45); outline-offset: 2px; }
+
+  /* 80mm receipt printers */
+  @media print {
+    @page { size: 80mm auto; margin: 4mm; }
+    body { background: #fff; display: block; padding: 0; }
+    .card { box-shadow: none; border: 0; padding: 0; max-width: none; }
+    .num, .brand { color: #000; }
+    .num { font-size: 30px; }
+    .brand { font-size: 20px; }
+    .hint { color: #000; }
+    .meta span { background: none; color: #000; padding: 0; }
+    ul { border-color: #000; }
+    .actions { display: none; }
+  }
+</style>
+</head>
+<body>
+  <main class="card">
+    <div class="brand">Judith's Kitchen</div>
+    <p class="hint">Your order number</p>
+    <div class="num">{{ number }}</div>
+
+    <ul>
+      {% for item in order.items %}
+        <li><span>{{ item.quantity }} × {{ item.product_name }}</span><span>£{{ '%.2f' % (item.price * item.quantity) }}</span></li>
+      {% endfor %}
+    </ul>
+    <div class="sum"><span>Total</span><span>£{{ '%.2f' % order.total_amount }}</span></div>
+    <p class="meta"><span>Paid{% if method %} · {{ method }}{% endif %}</span> <span>Ready in about {{ order.prep_time }} min</span></p>
+    <p class="hint">Watch the screen. When your number shows under Ready, come to the counter.</p>
+
+    <div class="actions">
+      <button type="button" onclick="window.print()">Print ticket</button>
+      <a class="primary" href="{{ url_for('walkin.new_order') }}" autofocus>Next order</a>
+    </div>
+  </main>
+</body>
+</html>

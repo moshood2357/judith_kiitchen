@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <h2 class="m-5">🛒 Your Cart</h2>
+
+    {% if cart_items and cart_items|length > 0 %}
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for cart_item, product in cart_items %}
+
+                <tr>
+
+                    <!-- PRODUCT -->
+                    <td class="d-flex align-items-center gap-3">
+
+                        <img src="{{ url_for('static', filename='uploads/' ~ product.image) }}" width="60"
+                            class="rounded">
+
+                        <div>
+                            <div class="fw-semibold">
+                                {{ product.name }}
+
+                                {% if cart_item.from_wishlist %}
+                                <span class="badge bg-info ms-2">
+                                    From Wishlist ❤️
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                    </td>
+
+                    <!-- PRICE -->
+                    <td>£{{ product.price }}</td>
+
+                    <!-- QUANTITY -->
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+
+                            <button type="button" class="btn btn-sm btn-outline-dark decrease-btn"
+                                data-id="{{ cart_item.id }}" data-csrf="{{ csrf_token() }}">
+                                -
+                            </button>
+
+                            <span id="qty-{{ cart_item.id }}">
+                                {{ cart_item.quantity }}
+                            </span>
+
+                            <button type="button" class="btn btn-sm btn-outline-dark increase-btn"
+                                data-id="{{ cart_item.id }}" data-csrf="{{ csrf_token() }}">
+                                +
+                            </button>
+
+                        </div>
+                    </td>
+
+                    <!-- SUBTOTAL -->
+                    <td>
+                        £<span id="subtotal-{{ cart_item.id }}">
+                            {{ cart_item.quantity * product.price }}
+                        </span>
+                    </td>
+
+                    <!-- REMOVE -->
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm remove-item-btn" data-id="{{ cart_item.id }}"
+                            data-csrf="{{ csrf_token() }}" data-slug="{{ cart_item.slug }}">
+                            Remove             
+                        </button>
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+
+    <!-- TOTAL -->
+    <div id="cart-summary" class="text-end mt-4">
+
+        <h4>
+            Total: £<span id="cart-total">{{ total }}</span>
+        </h4>
+
+        <a href="{{ url_for('cart.start_checkout') }}" class="btn btn-success mt-3 px-4">
+            Proceed to Checkout
+        </a>
+
+    </div>
+
+    {% else %}
+
+    <div class="text-center py-5">
+        <h4>Your cart is empty 😢</h4>
+        <p>Add some products to get started</p>
+
+        <a href="{{ url_for('main.home') }}" class="btn btn-primary">
+            Continue Shopping
+        </a>
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

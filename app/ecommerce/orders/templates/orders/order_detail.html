@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="order-detail-page">
+
+    <!-- ===================== HEADER ===================== -->
+    <div class="order-detail-header">
+        <div>
+            <h2>{{ order.order_number }}</h2>
+            <small>Placed on {{ order.created_at.strftime("%d %b %Y, %I:%M %p") }}</small>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="back-btn">← Back to dashboard</a>
+    </div>
+
+    <!-- ===================== STATUS CARDS ===================== -->
+    <div class="order-status-cards">
+
+        <div class="status-card">
+            <span class="label">Order Status</span>
+            <select class="status-dropdown {{ order.status.value }}" data-order-id="{{ order.id }}"
+                onchange="updateOrderStatus(this)">
+                <option value="processing" {% if order.status.value=='processing' %}selected{% endif %}>Processing
+                </option>
+                <option value="shipped" {% if order.status.value=='shipped' %}selected{% endif %}>Shipped</option>
+                <option value="delivered" {% if order.status.value=='delivered' %}selected{% endif %}>Delivered</option>
+                <option value="cancelled" {% if order.status.value=='cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+        </div>
+
+        <div class="status-card">
+            <span class="label">Payment</span>
+            <span class="status-badge {{ order.payment_status.value }}">
+                {{ order.payment_status.value }}
+            </span>
+        </div>
+
+        <div class="status-card">
+            <span class="label">Delivery</span>
+            <span>{{ order.delivery_method or '—' }}</span>
+        </div>
+
+        <div class="status-card">
+            <span class="label">Customer</span>
+            <span>
+                {% if order.user %}
+                {{ order.user.email }}
+                {% elif order.guest_email %}
+                {{ order.guest_email }} <small>(guest)</small>
+                {% else %}
+                —
+                {% endif %}
+            </span>
+        </div>
+
+    </div>
+
+    <!-- ===================== BODY ===================== -->
+    <div class="order-detail-body">
+
+        <!-- ORDER ITEMS -->
+        <div class="order-section">
+            <h3>Items</h3>
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        <th>Line Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items %}
+                    <tr>
+                        <td>
+                            <div class="product-cell">
+                                {% if item.product_image %}
+                                <img src="{{ item.product_image }}" alt="{{ item.product_name }}">
+                                {% endif %}
+                                <span>{{ item.product_name or '—' }}</span>
+                            </div>
+                        </td>
+                        <td>{{ item.quantity }}</td>
+                        <td>£{{ "{:,.2f}".format(item.price or 0) }}</td>
+                        <td>£{{ "{:,.2f}".format((item.price or 0) * item.quantity) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="order-detail-sidebar">
+
+            <!-- ORDER SUMMARY -->
+            <div class="order-section">
+                <h3>Summary</h3>
+                <div class="summary-rows">
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>£{{ "{:,.2f}".format(order.subtotal or 0) }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Shipping</span>
+                        <span>£{{ "{:,.2f}".format(order.shipping_fee or 0) }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tax</span>
+                        <span>£{{ "{:,.2f}".format(order.tax or 0) }}</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <strong>£{{ "{:,.2f}".format(order.total_amount or 0) }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAYMENT -->
+            {% if order.payment %}
+            <div class="order-section">
+                <h3>Payment</h3>
+                <div class="summary-rows">
+                    <div class="summary-row">
+                        <span>Method</span>
+                        <span>{{ order.payment.payment_method or '—' }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Transaction ID</span>
+                        <span class="mono">{{ order.payment.transaction_id or '—' }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Paid At</span>
+                        <span>{{ order.payment.paid_at.strftime("%d %b %Y, %I:%M %p") if order.payment.paid_at else '—'
+                            }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- SHIPPING ADDRESS -->
+            {% if order.address %}
+            <div class="order-section">
+                <h3>Shipping Address</h3>
+                <div class="address-block">
+                    <p>{{ order.address.full_name }}</p>
+                    <p>{{ order.address.phone }}</p>
+                    <p>{{ order.address.address_line_1 }}</p>
+                    {% if order.address.address_line_2 %}
+                    <p>{{ order.address.address_line_2 }}</p>
+                    {% endif %}
+                    <p>{{ order.address.city }}, {{ order.address.state }} {{ order.address.postal_code }}</p>
+                    <p>{{ order.address.country }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function updateOrderStatus(el, forcedStatus = null) {
+        const orderId = el.dataset.orderId;
+        const status = forcedStatus || el.value;
+
+        fetch(`/admin/orders/update/${orderId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: status })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const dropdown = document.querySelector(".status-dropdown");
+                    if (dropdown) {
+                        dropdown.value = status;
+                        dropdown.className = "status-dropdown " + status;
+                    }
+                } else {
+                    alert("Failed to update status");
+                }
+            })
+            .catch(() => alert("Something went wrong"));
+    }
+</script>
+
+<style>
+    .order-detail-page {
+        padding: 24px;
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .order-detail-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .order-detail-header h2 {
+        margin: 0;
+        font-size: 1.4rem;
+    }
+
+    .order-detail-header small {
+        color: #666;
+    }
+
+    .back-btn {
+        padding: 8px 16px;
+        background: #f1f5f9;
+        border-radius: 6px;
+        text-decoration: none;
+        color: #334155;
+        font-size: 0.875rem;
+    }
+
+    .back-btn:hover {
+        background: #e2e8f0;
+    }
+
+    .order-status-cards {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+    }
+
+    .status-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 14px 20px;
+        flex: 1;
+        min-width: 160px;
+    }
+
+    .status-card .label {
+        display: block;
+        font-size: 0.75rem;
+        color: #64748b;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .order-detail-body {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 24px;
+    }
+
+    .order-detail-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .order-section {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 20px;
+    }
+
+    .order-section h3 {
+        margin: 0 0 16px;
+        font-size: 1rem;
+        color: #1e293b;
+    }
+
+    .product-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .product-cell img {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+
+    .summary-rows {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+        color: #475569;
+    }
+
+    .summary-row.total {
+        border-top: 1px solid #e2e8f0;
+        padding-top: 10px;
+        font-size: 1rem;
+        color: #1e293b;
+    }
+
+    .address-block p {
+        margin: 2px 0;
+        font-size: 0.9rem;
+        color: #475569;
+    }
+
+    .mono {
+        font-family: monospace;
+        font-size: 0.8rem;
+    }
+
+    @media (max-width: 768px) {
+        .order-detail-body {
+            grid-template-columns: 1fr;
+        }
+
+        .order-status-cards {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}

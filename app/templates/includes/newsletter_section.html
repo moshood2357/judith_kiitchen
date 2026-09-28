@@ -1,0 +1,88 @@
+<!-- newsletter_section.html -->
+<section class="newsletter-section">
+    <div class="newsletter-container">
+
+        <div class="newsletter-text">
+            <h2>Stay Updated</h2>
+            <p>
+                Subscribe to our newsletter and get the latest insights, articles, and updates
+                delivered straight to your inbox.
+            </p>
+        </div>
+
+        <form class="newsletter-form" action="/subscribe/" method="POST">
+            <input type="email" name="email" placeholder="Enter your email address" required />
+
+            <button type="submit">
+                Subscribe
+            </button>
+        </form>
+
+    </div>
+</section>
+
+<style>
+    .newsletter-section {
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        color: #fff;
+        padding: 60px 20px;
+        text-align: center;
+    }
+
+    .newsletter-container {
+        max-width: 800px;
+        margin: auto;
+    }
+
+    .newsletter-text h2 {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .newsletter-text p {
+        font-size: 1rem;
+        opacity: 0.85;
+        margin-bottom: 25px;
+    }
+
+    .newsletter-form {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .newsletter-form input {
+        padding: 12px 15px;
+        width: 280px;
+        border: none;
+        border-radius: 6px;
+        outline: none;
+    }
+
+    .newsletter-form button {
+        padding: 12px 20px;
+        border: none;
+        border-radius: 6px;
+        background: #38bdf8;
+        color: #0f172a;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s ease;
+    }
+
+    .newsletter-form button:hover {
+        background: #0ea5e9;
+        color: #fff;
+    }
+
+    @media (max-width: 600px) {
+        .newsletter-form input {
+            width: 100%;
+        }
+
+        .newsletter-form {
+            flex-direction: column;
+        }
+    }
+</style>

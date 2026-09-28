@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}Foodstuff Store{% endblock %}</title>
+
+    <meta name="description"
+        content="{% block meta_description %}Fresh foodstuff, groceries, vegetables, grains, spices, and household essentials delivered to your doorstep.{% endblock %}">
+
+    <meta name="author" content="{% block meta_author %}Judith Kitchen Takeaway{% endblock %}">
+    <meta name="robots" content="{% block meta_robots %}index, follow{% endblock %}">
+
+    <link rel="canonical" href="{% block canonical_url %}{{ request.url }}{% endblock %}">
+
+    <!-- Open Graph -->
+    <meta property="og:title"
+        content="{% block og_title %}Fresh Food and Essentials in Cheltenham and beyond{% endblock %}">
+    <meta property="og:description"
+        content="{% block og_description %}Shop fresh food and essentials online with fast delivery in Cheltenham and beyond.{% endblock %}">
+    <meta property="og:image"
+        content="{% block og_image %}{{ url_for('static', filename='images/judith.png', _external=True) }}{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ request.url }}{% endblock %}">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="{% block twitter_card %}summary_large_image{% endblock %}">
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Bootstrap -->
+    <!-- <link href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" rel="stylesheet"> -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+            color: #212529;
+            margin-top: 50px;
+        }
+
+        .page-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .btn-success {
+            background-color: #198754;
+            border-color: #198754;
+        }
+
+        .btn-success:hover {
+            background-color: #157347;
+            border-color: #157347;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .flash-message {
+            border-radius: 12px;
+        }
+
+        /* =========================
+           FLOATING CART
+        ========================= */
+        .floating-cart {
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            background: #C5E4A9;
+            color: white;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            cursor: pointer;
+            z-index: 999;
+        }
+
+        .floating-cart span {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: red;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 50%;
+        }
+
+        /* =========================
+           CART DRAWER
+        ========================= */
+        .cart-drawer {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            width: 100%;
+            height: 70%;
+            background: white;
+            transition: 0.3s;
+            z-index: 1000;
+            overflow: hidden;
+
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cart-drawer.active {
+            bottom: 0;
+        }
+
+        .cart-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        /* HEADER FIXED AREA */
+        .cart-close-btn,
+        .cart-content h3 {
+            flex-shrink: 0;
+        }
+
+        .cart-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            border: none;
+            background: transparent;
+            font-size: 28px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .cart-close-btn:hover {
+            color: red;
+        }
+
+        /* SCROLL AREA (ONLY ITEMS) */
+        #mobile-cart-items {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 10px 0;
+        }
+
+        /* FIXED CHECKOUT BUTTON */
+        .cart-content .btn-success {
+            flex-shrink: 0;
+            position: sticky;
+            bottom: 0;
+            z-index: 2;
+        }
+
+        .mobile-cart-card {
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+            background: #fff;
+        }
+
+        /* ONLY MOBILE */
+        @media (min-width: 768px) {
+
+            .cart-drawer,
+            .floating-cart {
+                display: none;
+            }
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+    <div class="page-wrapper">
+
+        {% include 'header.html' %}
+
+        <main class="main-content">
+
+            <div class="container">
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show flash-message mt-5" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+            </div>
+
+            <!-- FLOATING CART -->
+            <div class="floating-cart" onclick="toggleCart()">
+                🛒
+                <span class="cart-count">{{ cart_count or 0 }}</span>
+            </div>
+
+            <!-- DRAWER -->
+            <div id="cartDrawer" class="cart-drawer">
+
+                <div class="cart-content">
+
+                    <button class="cart-close-btn" onclick="toggleCart()">
+                        &times;
+                    </button>
+
+                    <h3>Your Cart</h3>
+
+                    <div id="mobile-cart-items"></div>
+
+                    <div class="mt-3">
+                        <h5 class="text-center">
+                            Total: £<span id="mobile-cart-total">0</span>
+                        </h5>              
+                    </div>
+
+                    <a href="{{ url_for('cart.start_checkout') }}" class="btn btn-success mt-3 px-4">
+                        Proceed to Checkout
+                    </a>
+
+                </div>
+            </div>
+
+            {% block content %}{% endblock %}
+
+        </main>
+
+        {% include 'footer.html' %}
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous">
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout(function () {
+                let alerts = document.querySelectorAll(".flash-message");
+
+                alerts.forEach(function (alert) {
+                    let bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+
+            }, 2000);
+        });
+    </script>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    {% block js %}{% endblock %}
+
+</body>
+
+</html>

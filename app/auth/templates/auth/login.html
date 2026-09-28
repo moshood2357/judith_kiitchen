@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+
+.signin-page {
+    min-height: 100vh;
+    display: flex;
+}
+    
+    .auth-wrapper {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        /* background: #e2e8f0; */
+        /* min-height: 100%; */
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 420px;
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 35px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        animation: fadeIn 0.6s ease-in-out;
+    }
+    
+
+    .auth-card h2 {
+        text-align: center;
+        margin-bottom: 25px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .auth-card input {
+        width: 100%;
+        padding: 12px 15px;
+        margin-bottom: 15px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        outline: none;
+        font-size: 14px;
+        transition: 0.3s;
+    }
+
+    .auth-card input:focus {
+        border-color: #38bdf8;
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+
+    .auth-card button {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 10px;
+        background:#22c55e;
+
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 15px;
+        transition: 0.3s ease;
+    }
+
+    .auth-card button:hover {
+        background: #109131;
+        color: #fff;
+    }
+
+    .auth-footer {
+        text-align: center;
+        margin-top: 15px;
+        font-size: 13px;
+    }
+
+    .auth-footer a {
+        color: #38bdf8;
+        text-decoration: none;
+    }
+
+    .auth-footer a:hover {
+        text-decoration: underline;
+    }
+
+
+    .password-wrapper {
+    position: relative;
+}
+
+
+.toggle-password {
+    position: absolute;
+    right: 14px;
+    top: 38%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 16px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.toggle-password:hover {
+    opacity: 1;
+}.toggle-password {
+    position: absolute;
+    right: 14px;
+    top: 38%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 16px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.toggle-password:hover {
+    opacity: 1;
+}
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="signin-page">
+    <div class="auth-wrapper">
+        <div class="auth-card ">
+    
+            <h2>Welcome Back 👋</h2>
+    
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    
+                <input type="email" name="login" placeholder="Email Address"  autocomplete="username" required>
+
+    
+                <div class="password-wrapper">
+                    <input type="password" name="password"
+                    id="password" placeholder="Password(optional)" autocomplete="current-password">
+                    <span class="toggle-password" onclick="togglePassword()">
+                        <!-- Eye (Visible) -->
+                        <svg id="eyeOpen" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+                    
+                        <!-- Eye Hidden (clean slash through center) -->
+                        <svg id="eyeClosed" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                            <path d="M3 3l18 18" />
+                            <path d="M10.6 10.6a3 3 0 004.24 4.24" />
+                            <path d="M9.88 5.1A9.77 9.77 0 0112 5c6 0 10 7 10 7a17.6 17.6 0 01-2.06 2.94" />
+                            <path d="M6.1 6.1A17.6 17.6 0 002 12s4 7 10 7c1.06 0 2.06-.15 3-.43" />
+                        </svg>
+                    </span>
+                </div>
+
+                <!-- 👇 Add this right after password field -->
+                <div style="text-align: right; margin-top: -8px; margin-bottom: 15px;">
+                    <a href="{{ url_for('auth.forgot_password') }}" style="font-size: 12.5px; color: #38bdf8; text-decoration: none;">
+                        Forgot password?
+                    </a>
+                </div>
+
+                
+                <button type="submit" name="action" value="login">Login</button>
+
+                <!-- Divider -->
+                <div style="text-align:center; margin: 15px 0; font-size: 13px; color: #64748b;">
+                    OR
+                </div>
+                
+                <!-- Continue as Guest -->
+                <button type="submit" name="action" value="guest" style="background:#0ea5e9;">
+                    Continue as Guest
+                </button>
+            </form>
+    
+            <div class="auth-footer">
+                Don't have an account?
+                <a href="{{ url_for('auth.register') }}">Sign up</a>
+            </div>
+    
+        </div>
+        </div>
+</div>
+
+{% endblock %}
+
+
+{% block js %}
+<script>
+    function togglePassword() {
+        const passwordField = document.getElementById("password");
+        const eyeOpen = document.getElementById("eyeOpen");
+        const eyeClosed = document.getElementById("eyeClosed");
+
+        if (passwordField.type === "password") {
+            passwordField.type = "text";
+            eyeOpen.style.display = "none";
+            eyeClosed.style.display = "inline";
+        } else {
+            passwordField.type = "password";
+            eyeOpen.style.display = "inline";
+            eyeClosed.style.display = "none";
+        }
+    }
+</script>
+{% endblock js %}

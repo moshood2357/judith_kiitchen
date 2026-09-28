@@ -1,0 +1,762 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+   .dashboard {
+    padding: 20px 20px 30px;
+    margin: 70px;
+}
+
+    .section-title {
+        margin: 25px 0 15px;
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    /* STICKY SCROLLBAR */
+    .table-wrapper {
+        position: relative;
+    }
+
+    .table-scroll {
+        overflow-x: auto;
+        overflow-y: visible;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    /* stick scrollbar to viewport bottom */
+    .sticky-scrollbar {
+    position: fixed;
+    bottom: 0;
+    left: 70px;
+    width: calc(100% - 190px);
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    height: 16px;
+    background: #f1f5f9;
+    border-top: 1px solid #e2e8f0;
+
+    z-index: 100;
+    box-sizing: border-box;
+}
+
+
+    .sticky-scrollbar-inner {
+        height: 1px;
+    }
+
+    .orders-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        min-width: 1100px;
+    }
+
+    .orders-table th,
+    .orders-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+        white-space: nowrap;
+    }
+
+    .orders-table th {
+        background: #f7f7f7;
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 5;
+    }
+
+    .orders-table tr:hover {
+        background: #fafafa;
+    }
+
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+    }
+
+    .status-badge.unpaid {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-badge.failed {
+        background: #f5c6cb;
+        color: #721c24;
+    }
+
+    .status-badge.paid {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-badge.processing {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-badge.shipped {
+        background: #cce5ff;
+        color: #004085;
+    }
+
+    .status-badge.delivered {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-badge.accepted {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-badge.preparing {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-badge.completed {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-dropdown {
+        border: none;
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+    .status-dropdown.processing {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-dropdown.shipped {
+        background: #cfe2ff;
+        color: #084298;
+    }
+
+    .status-dropdown.delivered {
+        background: #d1e7dd;
+        color: #0a3622;
+    }
+
+    .status-dropdown.cancelled {
+        background: #f8d7da;
+        color: #842029;
+    }
+
+    .status-dropdown.accepted {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-dropdown.preparing {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-dropdown.completed {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 6px;
+        flex-wrap: nowrap;
+    }
+
+    .action-btn {
+        padding: 4px 10px;
+        border-radius: 5px;
+        font-size: 0.78rem;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .action-btn.view {
+        background: #e2e8f0;
+        color: #1e293b;
+    }
+
+    .action-btn.edit {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .action-btn.accept {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .action-btn.reject {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .action-btn:hover {
+        opacity: 0.85;
+    }
+
+    .page-btn {
+        background: #e2e8f0;
+        color: #1e293b;
+    }
+
+    .page-btn.active {
+        background: #0f172a;
+        color: #fff;
+    }
+
+    /* SEARCH BAR */
+    .search-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .search-bar input {
+        padding: 9px 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        width: 280px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    .search-bar input:focus {
+        border-color: #6366f1;
+    }
+
+    .search-bar button {
+        padding: 9px 18px;
+        background: #0f172a;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .search-bar button:hover {
+        background: #1e293b;
+    }
+
+    .clear-search {
+        font-size: 0.82rem;
+        color: #6366f1;
+        cursor: pointer;
+        text-decoration: underline;
+        display: none;
+    }
+
+    #no-results {
+        display: none;
+        text-align: center;
+        padding: 40px;
+        color: #94a3b8;
+        font-size: 0.95rem;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+</style>
+
+<div class="dashboard">
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+        <div class="section-title" style="margin:0;">All Orders</div>
+        <a href="{{ url_for('admin.dashboard') }}" class="add-category-btn">
+            ← Back to Dashboard
+        </a>
+    </div>
+
+    <!-- SEARCH BAR -->
+    <div class="search-bar">
+        <input type="text" id="order-search" placeholder="Search by order number e.g. ORD-ABC123"
+            oninput="searchOrders(this.value)">
+        <span class="clear-search" id="clear-btn" onclick="clearSearch()">Clear</span>
+    </div>
+
+    <div id="no-results">No orders found matching your search.</div>
+
+    <div class="table-wrapper">
+        <div class="table-scroll" id="table-scroll">
+            <table class="orders-table" id="orders-table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Contact</th>
+                        <th>Fulfillment</th>
+                        <th>Miles</th>       
+                        <th>Del. Fee</th>
+                        <th>Subtotal</th>
+                        <!-- <th>Shipping</th> -->
+                        <!-- <th>Tax</th> -->
+                        <th>Total</th>
+                        <th>Payment</th>
+                        <th>Status</th>
+                        <th>Note</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="orders-tbody">
+                    {% for order in orders.items %}
+                    <tr data-order-number="{{ order.order_number | lower }}">
+                        <td>{{ order.order_number }}</td>
+
+                        <td>{{ order.address.full_name if order.address else '—' }}</td>
+
+                        <td>
+                            <div>{{ order.user.email if order.user else (order.guest_email or '—') }}</div>
+                            <small>{{ order.address.phone if order.address else '—' }}</small>
+                        </td>
+                        <td>
+                            {% if order.fulfillment_type == 'pickup' %}
+                            <span
+                                style="background:#eff6ff; color:#1d4ed8; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:600;">
+                                🏪 Pickup
+                            </span>
+                            {% if order.pickup_date %}
+                            <div style="font-size:11px; color:#64748b; margin-top:3px;">
+                                {{ order.pickup_date }}
+                                {% if order.pickup_time %}· {{ order.pickup_time.replace('-', '–') }}{% endif %}
+                            </div>
+                            {% endif %}
+                            {% else %}
+                            <span
+                                style="background:#f0fdf4; color:#166534; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:600;">
+                                🚚 Delivery
+                            </span>
+                            {% endif %}                   
+                        </td>
+
+                        <td>{{ order.delivery_miles or '—' }}</td>
+                        <td>£{{ "{:,.2f}".format(order.delivery_fee or 0) }}</td>
+
+                        <td>£{{ "{:,.2f}".format(order.subtotal or 0) }}</td>
+                        <!-- <td>£{{ "{:,.2f}".format(order.shipping_fee or 0) }}</td> -->
+                        <!-- <td>£{{ "{:,.2f}".format(order.tax or 0) }}</td> -->
+
+                        <td>
+                            <strong>£{{ "{:,.2f}".format(order.total_amount or 0) }}</strong>
+                        </td>
+
+                        <td>
+                            {% if order.payment_status %}
+                            <span class="status-badge {{ order.payment_status.value }}">
+                                {{ order.payment_status.value }}
+                            </span>
+                            {% else %}
+                            <span class="status-badge unpaid">unpaid</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <select class="status-dropdown {{ order.status.value if order.status else 'processing' }}"
+                            data-order-id="{{ order.id }}" onchange="updateOrderStatus(this)">
+                            <option value="processing" {% if order.status.value=='processing' %}selected{% endif %}>
+                                Processing</option>
+                            <option value="preparing" {% if order.status.value=='preparing' %}selected{% endif %}>
+                                Preparing</option>
+                            <option value="completed" {% if order.status.value=='completed' %}selected{% endif %}>
+                                Completed</option>
+                            <option value="shipped" {% if order.status.value=='shipped' %}selected{% endif %}>
+                                Shipped</option>
+                            <option value="delivered" {% if order.status.value=='delivered' %}selected{% endif %}>
+                                Delivered</option>
+                            <option value="accepted" {% if order.status.value=='accepted' %}selected{% endif %}>
+                                Accepted</option>
+                            <option value="cancelled" {% if order.status.value=='cancelled' %}selected{% endif %}>
+                                Cancelled</option>
+                        </select>
+                        </td>
+
+
+                        <td
+                            style="min-width:180px;max-width:220px;white-space:normal;word-break:break-word;font-size:0.82rem;color:#475569;line-height:1.4;">
+                            {{ order.note or '—' }}                   
+                        </td>
+
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{{ url_for('order.order_detail', id=order.id) }}"
+                                    class="action-btn view">View</a>
+                                <a href="{{ url_for('order.edit_order', id=order.id) }}"
+                                    class="action-btn edit">Edit</a>
+                                <button class="action-btn accept" data-order-id="{{ order.id }}"
+                                    onclick="openAcceptModal(this)">Accept</button>
+                                    <button class="action-btn reject" data-order-id="{{ order.id }}" onclick="openRejectModal(this)">Reject
+                                    </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- STICKY SCROLLBAR -->
+        <div class="sticky-scrollbar" id="sticky-bar">
+            <div class="sticky-scrollbar-inner" id="sticky-inner"></div>
+        </div>
+    </div>
+
+    {% if orders.pages > 1 %}
+    <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin: 24px 0;">
+
+        {% if orders.has_prev %}
+        <a href="{{ url_for('order.orders_list', page=orders.prev_num) }}"
+            style="padding:6px 14px; border-radius:6px; background:#e2e8f0; color:#1e293b; text-decoration:none; font-size:0.85rem;">
+            ← Prev
+        </a>
+        {% endif %}
+
+        {% for p in orders.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+        <a href="{{ url_for('order.orders_list', page=p) }}" class="page-btn {% if p == orders.page %}active{% endif %}"
+            style="padding:6px 12px; border-radius:6px; text-decoration:none; font-size:0.85rem;">
+            {{ p }}
+        </a>
+        {% else %}
+        <span style="color:#94a3b8;">…</span>
+        {% endif %}
+        {% endfor %}
+
+        {% if orders.has_next %}
+        <a href="{{ url_for('order.orders_list', page=orders.next_num) }}"
+            style="padding:6px 14px; border-radius:6px; background:#e2e8f0; color:#1e293b; text-decoration:none; font-size:0.85rem;">
+            Next →
+        </a>
+        {% endif %}
+
+    </div>
+    {% endif %}
+
+</div>
+
+
+<!-- ACCEPT MODAL -->
+<div id="accept-modal" style="
+    display:none;
+    position:fixed;inset:0;
+    background:rgba(0,0,0,0.5);
+    z-index:9999;
+    align-items:center;
+    justify-content:center;
+">
+    <div style="
+        background:#fff;
+        border-radius:12px;
+        padding:32px;
+        width:100%;
+        max-width:400px;
+        box-shadow:0 20px 60px rgba(0,0,0,0.2);
+    ">
+        <h3 style="margin:0 0 8px;color:#0f172a;">Accept Order</h3>
+        <p style="color:#64748b;margin:0 0 20px;font-size:0.9rem;">
+            Set a preparation time. This will be sent to the kitchen and the customer.
+        </p>
+
+        <label style="font-size:0.8rem;font-weight:600;color:#475569;text-transform:uppercase;">
+            Prep Time (minutes)
+        </label>
+        <input id="prep-time-input" type="number" min="1" max="180" placeholder="e.g. 25" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:6px;
+                   font-size:1rem;margin:8px 0 20px;box-sizing:border-box;">
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button onclick="closeAcceptModal()"
+                style="padding:9px 20px;background:#f1f5f9;border:none;border-radius:6px;cursor:pointer;font-weight:500;">
+                Cancel
+            </button>
+            <button onclick="confirmAccept()"
+                style="padding:9px 20px;background:#065f46;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">
+                Confirm & Send to Kitchen
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- REJECT MODAL -->
+<div id="reject-modal" style="
+    display:none;
+    position:fixed;inset:0;
+    background:rgba(0,0,0,0.5);
+    z-index:9999;
+    align-items:center;
+    justify-content:center;
+">
+    <div style="
+        background:#fff;
+        border-radius:12px;
+        padding:32px;
+        width:100%;
+        max-width:440px;
+        box-shadow:0 20px 60px rgba(0,0,0,0.2);
+    ">
+        <h3 style="margin:0 0 8px;color:#0f172a;">Reject Order</h3>
+        <p style="color:#64748b;margin:0 0 20px;font-size:0.9rem;">
+            Please provide a reason. This will be sent to the customer.
+        </p>
+
+        <label style="font-size:0.8rem;font-weight:600;color:#475569;text-transform:uppercase;">
+            Reason for Rejection
+        </label>
+        <textarea id="reject-reason-input" rows="4"
+            placeholder="e.g. Item out of stock, unable to fulfill at this time..." style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:6px;
+                   font-size:0.9rem;margin:8px 0 20px;box-sizing:border-box;resize:vertical;"></textarea>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button onclick="closeRejectModal()"
+                style="padding:9px 20px;background:#f1f5f9;border:none;border-radius:6px;cursor:pointer;font-weight:500;">
+                Cancel
+            </button>
+            <button onclick="confirmReject()"
+                style="padding:9px 20px;background:#991b1b;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">
+                Reject & Notify Customer
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // =========================
+    // STICKY SCROLLBAR SYNC
+    // =========================
+    const tableScroll = document.getElementById("table-scroll");
+    const stickyBar = document.getElementById("sticky-bar");
+    const stickyInner = document.getElementById("sticky-inner");
+
+    function syncStickyWidth() {
+        stickyInner.style.width = document.querySelector(".orders-table").scrollWidth + "px";
+        }
+
+    syncStickyWidth();
+    window.addEventListener("resize", syncStickyWidth);
+
+    tableScroll.addEventListener("scroll", () => {
+        stickyBar.scrollLeft = tableScroll.scrollLeft;
+    });
+
+    stickyBar.addEventListener("scroll", () => {
+        tableScroll.scrollLeft = stickyBar.scrollLeft;
+    });
+
+    // =========================
+    // ORDER NUMBER SEARCH
+    // =========================
+    function searchOrders(query) {
+        const q = query.trim().toLowerCase();
+        const rows = document.querySelectorAll("#orders-tbody tr");
+        const clearBtn = document.getElementById("clear-btn");
+        const noResults = document.getElementById("no-results");
+
+        clearBtn.style.display = q ? "inline" : "none";
+
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const orderNum = row.dataset.orderNumber || "";
+            if (!q || orderNum.includes(q)) {
+                row.style.display = "";
+                visibleCount++;
+            } else {
+                row.style.display = "none";
+            }
+        });
+
+        noResults.style.display = visibleCount === 0 ? "block" : "none";
+    }
+
+    function clearSearch() {
+        const input = document.getElementById("order-search");
+        input.value = "";
+        searchOrders("");
+        input.focus();
+    }
+
+    // =========================
+    // ACCEPT MODAL
+    // =========================
+    let _acceptOrderId = null;
+    let _acceptRowEl = null;
+
+    function openAcceptModal(btn) {
+        _acceptOrderId = btn.dataset.orderId;
+        _acceptRowEl = btn;
+        document.getElementById("prep-time-input").value = "";
+        document.getElementById("accept-modal").style.display = "flex";
+    }
+
+    function closeAcceptModal() {
+        document.getElementById("accept-modal").style.display = "none";
+        _acceptOrderId = null;
+        _acceptRowEl = null;
+    }
+
+    function confirmAccept() {
+        const prepTime = document.getElementById("prep-time-input").value.trim();
+
+        if (!prepTime || parseInt(prepTime) < 1) {
+            alert("Please enter a valid preparation time.");
+            return;
+        }
+
+        const orderId = _acceptOrderId;
+        const rowEl = _acceptRowEl;
+
+        fetch(`/admin/orders/update/${orderId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "accepted", prep_time: parseInt(prepTime) })
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("Server returned " + res.status);
+                return res.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    closeAcceptModal();
+                    const row = rowEl.closest("tr");
+                    if (row) {
+                        const dropdown = row.querySelector(".status-dropdown");
+                        if (dropdown) {
+                            dropdown.value = "accepted";
+                            dropdown.className = "status-dropdown accepted";
+                        }
+                    }
+                } else {
+                    alert("Failed to accept order.");
+                }
+            })
+            .catch(err => {
+                alert("Something went wrong: " + err.message);
+            });
+    }
+
+    // =========================
+    // UPDATE ORDER STATUS
+    // =========================
+    function updateOrderStatus(el, forcedStatus = null) {
+        const orderId = el.dataset.orderId;
+        const status = forcedStatus || el.value;
+
+        if (status === "accepted") {
+            openAcceptModal(el);
+            return;
+        }
+
+        fetch(`/admin/orders/update/${orderId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: status })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const row = el.closest("tr");
+                    const dropdown = row.querySelector(".status-dropdown");
+                    if (dropdown) {
+                        dropdown.value = status;
+                        dropdown.className = "status-dropdown " + status;
+                    }
+                } else {
+                    alert("Failed to update status.");
+                }
+            })
+            .catch(() => alert("Something went wrong."));
+    }
+
+
+
+
+    let _rejectOrderId = null;
+        let _rejectRowEl = null;
+
+        function openRejectModal(btn) {
+            _rejectOrderId = btn.dataset.orderId;
+            _rejectRowEl = btn;
+            document.getElementById("reject-reason-input").value = "";
+            document.getElementById("reject-modal").style.display = "flex";
+        }
+
+        function closeRejectModal() {
+            document.getElementById("reject-modal").style.display = "none";
+            _rejectOrderId = null;
+            _rejectRowEl = null;
+        }
+
+        function confirmReject() {
+            const reason = document.getElementById("reject-reason-input").value.trim();
+
+            if (!reason) {
+                alert("Please enter a reason for rejection.");
+                return;
+            }
+
+            const orderId = _rejectOrderId;
+            const rowEl = _rejectRowEl;
+
+            fetch(`/admin/orders/update/${orderId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: "cancelled", rejection_reason: reason })
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("Server returned " + res.status);
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        closeRejectModal();
+
+                        const row = rowEl.closest("tr");
+                        if (row) {
+                            const dropdown = row.querySelector(".status-dropdown");
+                            if (dropdown) {
+                                dropdown.value = "cancelled";
+                                dropdown.className = "status-dropdown cancelled";
+                            }
+                        }
+                    } else {
+                        alert("Failed to reject order.");
+                    }
+                })
+                .catch(err => {
+                    alert("Something went wrong: " + err.message);
+                });
+        }
+</script>
+
+{% endblock %}

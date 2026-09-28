@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Walk-in order · Judith's Kitchen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+  /* Judith Ethnic Food Store design tokens (from static/css/style.css) */
+  :root {
+    --green-900: #0a3d1f; --green-800: #0f5c2e; --green-700: #146b35; --green-600: #1a8042;
+    --green-500: #22a355; --green-100: #d4f5e2; --green-50: #f0faf4;
+    --gold: #c9922a; --gold-lt: #f0c060;
+    --slate-900: #0f172a; --slate-700: #334155; --slate-500: #64748b;
+    --slate-300: #cbd5e1; --slate-100: #f1f5f9; --slate-50: #f8fafc; --white: #ffffff;
+    --error: #dc2626; --product: #117843;
+    --radius-sm: 6px; --radius: 12px; --radius-lg: 20px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+    --shadow: 0 4px 16px rgba(0,0,0,.10);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,.14);
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+    --transition: 220ms cubic-bezier(.4,0,.2,1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body); color: var(--slate-900); background: var(--slate-50);
+    line-height: 1.6; -webkit-font-smoothing: antialiased; min-height: 100vh;
+    font-variant-numeric: tabular-nums;
+  }
+  button, input, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid rgba(34,163,85,.45); outline-offset: 2px; }
+
+  .layout { display: grid; grid-template-columns: 1fr minmax(560px, 46%); min-height: 100vh; }
+  .menu { padding: 28px 32px 48px; }
+  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; gap: 16px; }
+  h1 { font-family: var(--font-display); font-weight: 700; font-size: 30px; color: var(--green-900); line-height: 1.2; }
+  header a {
+    display: inline-flex; align-items: center; padding: 9px 20px; border-radius: 9999px;
+    border: 2px solid var(--green-700); color: var(--green-700); font-weight: 600; font-size: .9rem;
+    text-decoration: none; transition: all var(--transition); white-space: nowrap;
+  }
+  header a:hover { background: var(--green-50); }
+
+  .flash { background: #fee2e2; color: #991b1b; padding: 12px 16px; border-radius: var(--radius);
+           margin-bottom: 18px; font-weight: 600; font-size: .95rem; }
+
+  .search {
+    width: 100%; padding: 12px 16px; border: 1.5px solid var(--slate-300); border-radius: var(--radius);
+    background: var(--white); font-size: .95rem; margin-bottom: 8px; outline: none;
+    transition: border-color var(--transition), box-shadow var(--transition);
+  }
+  .search:focus { border-color: var(--green-500); box-shadow: 0 0 0 3px rgba(34,163,85,.12); }
+  .search::placeholder { color: var(--slate-500); }
+
+  .cat h2 { font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--green-800); margin: 26px 0 12px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .tile {
+    position: relative; text-align: left; cursor: pointer;
+    background: var(--white); border: 1.5px solid var(--slate-100); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm); padding: 16px 16px 14px; min-height: 96px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    transition: box-shadow var(--transition), border-color var(--transition), transform var(--transition);
+  }
+  .tile:hover { box-shadow: var(--shadow-lg); }
+  .tile:active { transform: scale(.98); }
+  .tile .n { font-weight: 600; font-size: 1rem; line-height: 1.3; color: var(--product); padding-right: 30px; }
+  .tile .p { color: var(--slate-900); font-weight: 700; font-size: 1rem; margin-top: 10px; }
+  .tile .badge {
+    position: absolute; top: 10px; right: 10px; min-width: 28px; height: 28px; padding: 0 9px;
+    border-radius: 9999px; background: var(--green-700); color: var(--white);
+    font-weight: 700; font-size: .85rem; display: none; align-items: center; justify-content: center;
+  }
+  .tile.in .badge { display: flex; }
+  .tile.in { border-color: var(--green-500); background: var(--green-50); }
+
+  /* Basket */
+  aside {
+    background: var(--white); border-left: 1px solid var(--slate-100); box-shadow: var(--shadow);
+    padding: 22px 26px; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  aside h2 { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--green-900); line-height: 1.2; }
+  /* Room for at least 4 items before the list scrolls */
+  .lines { flex: 1 0 245px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; min-height: 245px; }
+  .empty { color: var(--slate-500); font-size: .95rem; }
+  .line { display: grid; grid-template-columns: 1fr auto auto auto; gap: 12px; align-items: center;
+          padding-bottom: 10px; border-bottom: 1px solid var(--slate-100); }
+  .line .ln { font-size: .95rem; font-weight: 600; line-height: 1.3; }
+  .line .lp { color: var(--slate-500); font-size: .85rem; }
+  .step { display: flex; align-items: center; gap: 6px; }
+  .step button {
+    width: 34px; height: 34px; border-radius: 9999px; cursor: pointer; font-size: 18px; line-height: 1;
+    border: 1.5px solid var(--slate-300); background: var(--white); color: var(--slate-700);
+    transition: all var(--transition);
+  }
+  .step button:hover { border-color: var(--green-600); color: var(--green-700); background: var(--green-50); }
+  .step span { min-width: 22px; text-align: center; font-weight: 700; }
+  .lt { min-width: 70px; text-align: right; font-weight: 700; }
+  .rm {
+    width: 32px; height: 32px; border-radius: 9999px; border: 0; cursor: pointer;
+    background: transparent; color: var(--slate-500); font-size: 20px; line-height: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all var(--transition);
+  }
+  .rm:hover { background: #fee2e2; color: var(--error); }
+
+  label.f, span.f { display: block; font-size: .85rem; font-weight: 600; color: var(--slate-700); margin-bottom: 6px; }
+  input[type=text] {
+    width: 100%; padding: 11px 14px; border: 1.5px solid var(--slate-300); border-radius: var(--radius);
+    background: var(--white); font-size: .95rem; outline: none;
+    transition: border-color var(--transition), box-shadow var(--transition);
+  }
+  input[type=text]:focus { border-color: var(--green-500); box-shadow: 0 0 0 3px rgba(34,163,85,.12); }
+  /* Name + paid by, prep time + note side by side to save height */
+  .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; align-items: end; }
+  .opts .prep { height: 46px; }
+
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .seg label {
+    text-align: center; padding: 11px 6px; border-radius: 9999px; cursor: pointer; white-space: nowrap;
+    border: 2px solid var(--slate-300); color: var(--slate-700); font-weight: 600; font-size: .85rem;
+    transition: all var(--transition);
+  }
+  .seg label:hover { border-color: var(--green-600); }
+  .seg input:checked + label { background: var(--green-700); border-color: var(--green-700); color: var(--white); }
+  .seg input:focus-visible + label { outline: 3px solid rgba(34,163,85,.45); outline-offset: 2px; }
+
+  .prep { display: flex; align-items: center; justify-content: center; gap: 10px;
+          border: 1.5px solid var(--slate-300); border-radius: var(--radius); padding: 0 6px; }
+  .prep .f { margin: 0; }
+  .prep .step span { min-width: 60px; font-size: 1rem; }
+
+  /* Total and Place order share one row so the button never drops below the fold */
+  .checkout { display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center;
+              border-top: 1px solid var(--slate-100); padding-top: 14px; }
+  .total { display: flex; flex-direction: column; line-height: 1.1; }
+  .total span:first-child { color: var(--slate-500); font-weight: 600; font-size: .85rem; }
+  .total strong { font-family: var(--font-display); font-size: 32px; font-weight: 700; color: var(--green-900); }
+
+  .place {
+    border: 2px solid transparent; border-radius: 9999px; padding: 16px; cursor: pointer;
+    background: var(--green-700); color: var(--white); font-size: 1.05rem; font-weight: 600;
+    transition: all var(--transition);
+  }
+  .place:hover:not(:disabled) { background: var(--green-900); }
+  .place:disabled { background: var(--slate-300); color: var(--white); cursor: not-allowed; }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    aside { position: static; height: auto; border-left: 0; border-top: 1px solid var(--slate-100); }
+    .menu { padding: 20px 16px 24px; }
+    .tiles { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    header { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+<form method="post" action="{{ url_for('walkin.create_order') }}" id="orderForm" class="layout">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <section class="menu">
+    <header>
+      <h1>New walk-in order</h1>
+      <a href="{{ url_for('kitchen.kitchen_display') }}">Kitchen display</a>
+    </header>
+
+    {% with messages = get_flashed_messages() %}
+      {% for m in messages %}<p class="flash" role="alert">{{ m }}</p>{% endfor %}
+    {% endwith %}
+
+    <input class="search" id="search" type="search" placeholder="Search the menu" aria-label="Search the menu" autocomplete="off">
+
+    {% for cat in menu %}
+      <div class="cat">
+        <h2>{{ cat.name }}</h2>
+        <div class="tiles">
+          {% for p in cat.products %}
+            <button type="button" class="tile" data-id="{{ p.id }}" data-name="{{ p.name }}" data-price="{{ p.price }}">
+              <span class="badge" aria-hidden="true"></span>
+              <span class="n">{{ p.name }}</span>
+              <span class="p">£{{ p.price }}</span>
+            </button>
+          {% endfor %}
+        </div>
+      </div>
+    {% else %}
+      <p class="empty">No active products on the menu yet. Add them in the admin dashboard first.</p>
+    {% endfor %}
+  </section>
+
+  <aside>
+    <h2>Order</h2>
+    <div class="lines" id="lines" aria-live="polite"><p class="empty">Tap items on the menu to add them.</p></div>
+    <div id="qtyInputs"></div>
+
+    <div class="opts">
+    <div>
+      <label class="f" for="customer_name">Customer name (optional)</label>
+      <input type="text" id="customer_name" name="customer_name" maxlength="150" autocomplete="off">
+    </div>
+
+    <div>
+      <span class="f" style="display:block">Paid by</span>
+      <div class="seg">
+        {% for key, label in payment_methods.items() %}
+          <input type="radio" name="payment_method" id="pm_{{ key }}" value="{{ key }}" {% if loop.first %}checked{% endif %}>
+          <label for="pm_{{ key }}">{{ label }}</label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div>
+    <span class="f" id="prepName">Prep time</span>
+    <div class="prep" role="group" aria-labelledby="prepName">
+      <div class="step">
+        <button type="button" id="prepDown" aria-label="Less prep time">−</button>
+        <span id="prepLabel">{{ default_prep }} min</span>
+        <button type="button" id="prepUp" aria-label="More prep time">+</button>
+      </div>
+      <input type="hidden" name="prep_time" id="prep_time" value="{{ default_prep }}">
+    </div>
+    </div>
+
+    <div>
+      <label class="f" for="note">Note for the kitchen (optional)</label>
+      <input type="text" id="note" name="note" maxlength="1000" autocomplete="off" placeholder="e.g. no pepper">
+    </div>
+    </div>
+
+    <div class="checkout">
+      <div class="total"><span>Total</span><strong id="total">£0.00</strong></div>
+      <button class="place" id="place" type="submit" disabled>Place order</button>
+    </div>
+  </aside>
+</form>
+
+<script>
+  const basket = new Map();          // id -> {name, price, qty}
+  const linesEl = document.getElementById("lines");
+  const inputsEl = document.getElementById("qtyInputs");
+  const totalEl = document.getElementById("total");
+  const placeBtn = document.getElementById("place");
+  const money = n => "£" + n.toFixed(2);
+
+  function change(id, delta, name, price) {
+    const item = basket.get(id) || { name, price, qty: 0 };
+    item.qty = Math.max(0, Math.min(50, item.qty + delta));
+    item.qty ? basket.set(id, item) : basket.delete(id);
+    render();
+  }
+
+  function render() {
+    linesEl.replaceChildren(); inputsEl.replaceChildren();
+    let total = 0;
+    if (!basket.size) {
+      const p = document.createElement("p");
+      p.className = "empty"; p.textContent = "Tap items on the menu to add them.";
+      linesEl.appendChild(p);
+    }
+    for (const [id, it] of basket) {
+      total += it.price * it.qty;
+      const row = document.createElement("div"); row.className = "line";
+      row.innerHTML = `<div><div class="ln"></div><div class="lp"></div></div>
+        <div class="step"><button type="button" aria-label="Remove one">−</button><span></span>
+        <button type="button" aria-label="Add one">+</button></div><div class="lt"></div>
+        <button type="button" class="rm">×</button>`;
+      row.querySelector(".ln").textContent = it.name;
+      row.querySelector(".lp").textContent = money(it.price) + " each";
+      row.querySelector(".step span").textContent = it.qty;
+      row.querySelector(".lt").textContent = money(it.price * it.qty);
+      const [minus, plus] = row.querySelectorAll(".step button");
+      minus.onclick = () => change(id, -1);
+      plus.onclick = () => change(id, +1);
+      const rm = row.querySelector(".rm");
+      rm.setAttribute("aria-label", "Remove " + it.name);
+      rm.title = "Remove";
+      rm.onclick = () => change(id, -it.qty);
+      linesEl.appendChild(row);
+
+      const input = document.createElement("input");
+      input.type = "hidden"; input.name = "qty_" + id; input.value = it.qty;
+      inputsEl.appendChild(input);
+    }
+    document.querySelectorAll(".tile").forEach(t => {
+      const it = basket.get(t.dataset.id);
+      t.classList.toggle("in", !!it);
+      t.querySelector(".badge").textContent = it ? it.qty : "";
+    });
+    totalEl.textContent = money(total);
+    placeBtn.disabled = !basket.size;
+  }
+
+  document.querySelectorAll(".tile").forEach(t =>
+    t.addEventListener("click", () =>
+      change(t.dataset.id, +1, t.dataset.name, parseFloat(t.dataset.price))));
+
+  // Prep time stepper (5-minute steps, 1–180)
+  const prepInput = document.getElementById("prep_time");
+  const prepLabel = document.getElementById("prepLabel");
+  function setPrep(v) {
+    v = Math.max(1, Math.min(180, v));
+    prepInput.value = v; prepLabel.textContent = v + " min";
+  }
+  document.getElementById("prepDown").onclick = () =>
+    setPrep(+prepInput.value <= 5 ? +prepInput.value - 1 : +prepInput.value - 5);
+  document.getElementById("prepUp").onclick = () =>
+    setPrep(+prepInput.value < 5 ? +prepInput.value + 1 : +prepInput.value + 5);
+
+  // Menu search
+  document.getElementById("search").addEventListener("input", e => {
+    const q = e.target.value.trim().toLowerCase();
+    document.querySelectorAll(".cat").forEach(cat => {
+      let any = false;
+      cat.querySelectorAll(".tile").forEach(t => {
+        const hit = !q || t.dataset.name.toLowerCase().includes(q);
+        t.hidden = !hit; any = any || hit;
+      });
+      cat.hidden = !any;
+    });
+  });
+
+  // Stop double-taps creating two orders
+  document.getElementById("orderForm").addEventListener("submit", () => {
+    placeBtn.disabled = true; placeBtn.textContent = "Placing order…";
+  });
+</script>
+</body>
+</html>

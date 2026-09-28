@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- HEADER -->
+    <div class="mb-4">
+        <h3 class="fw-bold">
+            Search Results
+        </h3>
+
+        {% if query %}
+        <p class="text-muted">
+            Showing results for: <strong>"{{ query }}"</strong>
+        </p>
+        {% endif %}
+    </div>
+
+    <!-- RESULTS -->
+    {% if products and products|length > 0 %}
+
+    <div class="row g-4">
+
+        {% for product in products %}
+        <div class="col-md-3 col-sm-6">
+
+            <div class="card h-100 shadow-sm border-0 rounded-4">
+
+                <!-- IMAGE -->
+                <img src="{{ url_for('static', filename='uploads/' ~ product.image) }}" class="card-img-top"
+                    style="height:200px; object-fit:cover;" alt="{{ product.name }}">
+
+                <!-- BODY -->
+                <div class="card-body">
+
+                    <h6 class="fw-bold text-dark">
+                        {{ product.name }}
+                    </h6>
+
+                    <p class="text-success fw-semibold mb-2">
+                        £{{ product.price }}
+                    </p>
+
+                    <a href="{{ url_for('main.product_details', slug=product.slug) }}"
+                        class="btn btn-sm btn-outline-success w-100 rounded-pill">
+                        View Product
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+        {% endfor %}
+
+    </div>
+
+    {% else %}
+
+    <!-- EMPTY STATE -->
+    <div class="text-center py-5">
+
+        <h4 class="text-muted">No products found 😢</h4>
+        <p class="text-muted">
+            Try searching with different keywords.
+        </p>
+
+        <a href="{{ url_for('main.shop') }}" class="btn btn-success rounded-pill px-4 mt-3">
+            Browse Products
+        </a>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

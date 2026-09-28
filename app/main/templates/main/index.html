@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+
+
+{% block title %}Fresh Food & essentials across Cheltenham and beyond | Fast Delivery
+{% endblock %}
+
+
+{% block meta_description %}
+Order fresh foodstuff and daily essentials across Cheltenham and beyond. Fast delivery, affordable prices, and quality products you can trust.
+{% endblock %}
+
+
+
+{% block content %}
+
+<main class="">
+    {% include 'includes/hero.html' %}
+    {% include 'includes/trust_section.html' %}
+
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold text-success">Hot Right Now</h2>
+                <a href="{{ url_for('main.shop') }}" class="btn btn-success">View menu</a>
+            </div>
+
+            <div class="row g-4">
+                {% for product in featured_products %}
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    {% include 'includes/product_card.html' %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <section class="py-5">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold text-success">Featured Categories</h2>
+                <a href="{{ url_for('main.shop') }}" class="btn btn-outline-success">View Menu</a>
+            </div>
+
+            <div class="row g-4">
+                {% for category in categories %}
+                <div class="col-md-3 col-sm-6">
+                    {% include 'includes/category_card.html' %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- STRUCTURED DATA -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Store",
+  "name": "Judith Kitchen Takeaway",
+  "image": "{{ url_for('static', filename='images/judith.png', _external=True) }}",
+  "url": "{{ request.url }}",
+  "telephone": "+234XXXXXXXXXX",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Cheltenham",
+    "addressCountry": "GB"
+  },
+  "sameAs": [
+    "https://instagram.com/yourbrand",
+    "https://facebook.com/yourbrand"
+  ]
+}
+</script>
+
+{% endblock %}

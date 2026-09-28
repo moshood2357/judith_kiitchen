@@ -1,0 +1,54 @@
+<div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden">
+
+    <a href="{{ url_for('main.product_details', slug=product.slug) }}">
+        <img src="{{ url_for('static', filename='uploads/' + (product.image or 'default.png')) }}" class="card-img-top w-100"
+            alt="{{ product.name }}"
+            loading="eager"
+            decoding="async"
+            fetchpriority="high" style="height: 220px; object-fit: cover;">
+    </a>
+
+    <div class="card-body d-flex flex-column">
+
+        <h5 class="fw-bold">{{ product.name }}</h5>
+
+        <p class="text-muted small mb-2">
+            {{ product.short_description or '' }}
+        </p>
+
+        <div class="mt-auto">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-success fw-bold mb-0">
+                    £{{ product.price }}
+                </h6>
+            </div>
+
+            <div class="d-flex gap-2">
+
+                <!-- ❤️ WISHLIST -->
+                <button type="button" class="btn btn-outline-danger rounded-pill px-3 add-to-wishlist-btn"
+                    data-slug="{{ product.slug }}" data-csrf="{{ csrf_token() }}">
+                    ♥
+                </button>
+
+                <!-- 🛒 ADD TO CART -->
+                {% if product.id in cart_product_ids %}
+                
+                <a href="{{ url_for('cart.view_cart') }}" class="btn btn-success rounded-pill px-3">
+                    View Cart
+                </a>
+                
+                {% else %}
+                
+                <button type="button" class="btn btn-success rounded-pill px-3 add-to-cart-btn" data-slug="{{ product.slug }}"
+                    data-csrf="{{ csrf_token() }}">
+                    Add to cart
+                </button>     
+                {% endif %}
+
+            </div>
+
+        </div>
+    </div>
+</div>

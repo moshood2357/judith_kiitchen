@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    .profile-page {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 80px 20px;
+        background: #f1f5f9;
+    }
+
+    .profile-card {
+        width: 100%;
+        max-width: 600px;
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .profile-card h3 {
+        font-weight: 700;
+        margin-bottom: 25px;
+        color: #0f172a;
+        text-align: center;
+    }
+
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 6px;
+    }
+
+    .form-control {
+        border-radius: 10px;
+        padding: 12px 14px;
+        font-size: 14px;
+        border: 1px solid #e2e8f0;
+        transition: 0.3s;
+    }
+
+    .form-control:focus {
+        border-color: #38bdf8;
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+
+    .form-control[disabled] {
+        background: #f8fafc;
+        cursor: not-allowed;
+    }
+
+    .btn-update {
+        margin-top: 10px;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 15px;
+        background: #22c55e;
+        border: none;
+        color: #fff;
+        transition: 0.3s ease;
+    }
+
+    .btn-update:hover {
+        background: #16a34a;
+    }
+
+    .profile-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .profile-avatar {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: #e2e8f0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 10px;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="profile-page">
+    <div class="profile-card">
+
+        <div class="profile-header">
+            <div class="profile-avatar">
+                {{ user.first_name[0] if user.first_name else "U" }}
+            </div>
+            <h3>My Profile</h3>
+        </div>
+
+        <form method="POST">
+
+            <div class="mb-3">
+                <label class="form-label">First Name</label>
+                <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Last Name</label>
+                <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" value="{{ user.email }}" disabled>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Phone</label>
+                <input type="text" name="phone" class="form-control" value="{{ user.phone }}">
+            </div>
+
+            <button type="submit" class="btn btn-update w-100">
+                Update Profile
+            </button>
+
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}

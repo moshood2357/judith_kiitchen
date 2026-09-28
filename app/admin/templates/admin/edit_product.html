@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+
+            <div class="card shadow-sm border-0 rounded-4 p-4">
+
+                <h3 class="mb-4">Edit Product</h3>
+
+                <form method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <!-- Name -->
+                    <input type="text" name="name" class="form-control mb-3" value="{{ product.name }}" required>
+
+                    <!-- Description -->
+                    <textarea name="description" class="form-control mb-3"
+                        placeholder="Full Description">{{ product.description }}</textarea>
+
+                    <!-- Short Description -->
+                    <input type="text" name="short_description" class="form-control mb-3"
+                        value="{{ product.short_description }}">
+
+                    <!-- Price -->
+                    <input type="number" name="price" step="0.01" class="form-control mb-3" value="{{ product.price }}" required>
+
+                    <!-- Stock -->
+                    <input type="number" name="stock_quantity" class="form-control mb-3"
+                        value="{{ product.stock_quantity }}" required>
+
+                    <!-- Category -->
+                    <select name="category_id" class="form-select mb-3" required>
+                        <option value="">Select Category</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if product.category_id==category.id %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <!-- Current Image -->
+                    <div class="mb-3">
+                        <label>Current Image</label><br>
+                        <img src="{{ url_for('static', filename='uploads/' + product.image) if product.image else url_for('static', filename='images/default-product.png') }}"
+                            style="width:120px; height:120px; object-fit:cover; border-radius:8px;">
+                    </div>
+
+                    <!-- Upload New -->
+                    <input type="file" name="image" class="form-control mb-3">
+
+                    <button class="btn btn-primary w-100 rounded-pill">
+                        Update Product
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

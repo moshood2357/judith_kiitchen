@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div
+    style="max-width:500px; margin:40px auto; background:#fff; padding:25px; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,0.08);">
+
+    <h2 style="margin-bottom:20px;">Add Category</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <!-- Name -->
+        <div style="margin-bottom:15px;">
+            <label>Category Name</label>
+            <input type="text" name="name" required
+                style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;">
+        </div>
+
+        <!-- Description -->
+        <div style="margin-bottom:15px;">
+            <label>Description</label>
+            <textarea name="description" rows="3"
+                style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;"></textarea>
+        </div>
+
+        <!-- Image -->
+        <div style="margin-bottom:15px;">
+            <label>Category Image</label>
+            <input type="file" name="image" accept="image/*" style="width:100%;">
+        </div>
+
+        <button type="submit"
+            style="width:100%; padding:12px; background:#16a34a; color:white; border:none; border-radius:8px; cursor:pointer;">
+            Create Category
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

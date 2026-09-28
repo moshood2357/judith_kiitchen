@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- ================= HERO (MATCH HOMEPAGE STYLE) ================= -->
+<section class="hero-section shop-hero">
+    <div class="hero-content">
+        <h1>Order Hot, Fresh Meals</h1>
+        <p>Delicious Traditional dishes, Freshly cooked and ready for delivery - fast,tasty, and satisfying</p>
+    </div>
+</section>
+
+<!-- ================= SHOP WRAPPER ================= -->
+<section class="shop-wrapper container">
+
+    <!-- ================= FILTER BAR ================= -->
+    <div class="shop-filters">
+        <!-- <form action="{{ url_for('main.search') }}" method="GET" class="d-flex mx-auto w-50 position-relative"> -->
+<!--         
+            <input type="search" name="q" id="searchInput" class="form-control rounded-pill me-2"
+                placeholder="Search products..." autocomplete="off"> -->
+        
+            <!-- <button type="submit" class="btn btn-success rounded-pill px-4">
+                Search
+            </button>
+         -->
+            <!-- DROPDOWN (FIXED POSITIONING) -->
+            <!-- <div id="searchResults" class="list-group position-absolute w-100 shadow"
+                style="top: 110%; left: 0; z-index: 999; display: none;">
+            </div>
+        
+        </form> -->
+
+
+        <form method="GET" action="{{ url_for('main.shop') }}" class="d-flex gap-2 flex-wrap">
+
+            <!-- CATEGORY -->
+            <select class="filter-select" name="category" onchange="this.form.submit()">
+                <option value="">All Categories</option>
+    
+                {% for category in categories %}
+                <option value="{{ category.id }}"
+                    {% if selected_category == category.id %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
+    
+            <!-- SORT -->
+            <select class="filter-select" name="sort" onchange="this.form.submit()">
+    
+                <option value="">Sort By</option>
+    
+                <option value="newest"
+                    {% if selected_sort == "newest" %}selected{% endif %}>
+                    Newest
+                </option>
+    
+                <option value="low_high"
+                    {% if selected_sort == "low_high" %}selected{% endif %}>
+                    Price: Low to High
+                </option>
+    
+                <option value="high_low"
+                    {% if selected_sort == "high_low" %}selected{% endif %}>
+                    Price: High to Low
+                </option>
+    
+            </select>
+    
+        </form>
+
+    </div>
+
+    <!-- ================= PRODUCTS GRID ================= -->
+    <div class="product-grid">
+
+        {% for product in products.items %}
+        {% include "includes/product_card.html" %}
+        {% endfor %}
+
+    </div>
+
+    <!-- ================= PAGINATION ================= -->
+    <div class="pagination">
+
+        {% if products.has_prev %}
+        <a href="{{ url_for('main.shop', page=products.prev_num, category=selected_category, sort=selected_sort) }}" class="page-btn">
+            Prev
+        </a>
+        {% endif %}
+
+        <span class="page-info">
+            Page {{ products.page }} of {{ products.pages }}
+        </span>
+
+        {% if products.has_next %}
+        <a href="{{ url_for('main.shop', page=products.next_num, category=selected_category, sort=selected_sort) }}" class="page-btn">
+            Next
+        </a>
+        {% endif %}
+
+    </div>
+
+</section>
+
+<!-- ================= STYLES (MATCH HOMEPAGE DESIGN SYSTEM) ================= -->
+<style>
+    /* HERO (MATCH YOUR HOMEPAGE STYLE) */
+    .shop-hero {
+        background: linear-gradient(135deg, #0f172a, #22c55e);
+        color: #fff;
+        padding: 70px 20px;
+        text-align: center;
+    }
+
+    .shop-hero h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+
+    .shop-hero p {
+        opacity: 0.85;
+        margin-top: 10px;
+    }
+
+    /* SHOP WRAPPER */
+    .shop-wrapper {
+        padding: 30px 15px;
+    }
+
+    /* FILTER BAR */
+    .shop-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 25px;
+    }
+
+    .filter-input,
+    .filter-select {
+        padding: 12px 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        outline: none;
+        transition: 0.3s;
+    }
+
+    .filter-input:focus,
+    .filter-select:focus {
+        border-color: #38bdf8;
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+
+    /* PRODUCT GRID (MATCH HOMEPAGE CARDS) */
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 20px;
+    }
+
+    /* PAGINATION */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        margin-top: 35px;
+    }
+
+    .page-btn {
+        padding: 8px 14px;
+        border: 1px solid #22c55e;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #0f172a;
+        transition: 0.3s;
+    }
+
+    .page-btn:hover {
+        background: #0f172a;
+        color: #16a34a;
+    }
+
+    .page-info {
+        font-weight: 500;
+   
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+        .shop-filters {
+            flex-direction: column;
+        }
+    }
+</style>
+
+
+
+
+
+{% endblock %}

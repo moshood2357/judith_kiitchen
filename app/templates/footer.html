@@ -1,0 +1,68 @@
+<footer class="footer">
+    <div class="footer-container">
+
+        <!-- Brand -->
+        <div class="footer-brand">
+            <h2>Judith Kitchen takeaway</h2>
+            <p>
+                Your trusted restaurant for freshly cooked foods and essentials
+                delivered right to your doorstep.
+            </p>
+            <address class="footer__address">
+                302 High Street, Cheltenham, England, GL50 3JF<br>
+                <a href="tel:+447306011093">+44 7306 011093</a><br>
+                <a href="mailto:info@judithkitchen.co.uk">info@judithkitchen.co.uk</a>
+              </address>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="footer-links">
+            <h3>Quick Links</h3>
+            <ul>
+                <li><a href="{{ url_for('main.home') }}">Home</a></li>
+                <li><a href="{{ url_for('main.shop') }}">Shop</a></li>
+                <li><a href="{{ url_for('cart.view_cart') }}">Cart</a></li>
+                <li><a href="#">Checkout</a></li>
+                <li><a href="#">Orders</a></li>
+            </ul>
+        </div>
+
+        <!-- Support -->
+        <div class="footer-support">
+            <h3>Support</h3>
+            <ul>
+                <li><a href="{{ url_for('main.contact') }}">Contact Us</a></li>
+                <li><a href="#">FAQ</a></li>
+                <li><a href="#">Shipping Info</a></li>
+                <li><a href="#">Returns & Refunds</a></li>
+                <li><a href="#">Privacy Policy</a></li>
+            </ul>
+        </div>
+
+        <!-- Newsletter -->
+        <div class="newslette-footer">
+            <h3>Newsletter</h3>
+            <p class="newsletter-footer-p">Get updates on new products & offers.</p>
+
+            <form class="newsletter-footer-forms" action="{{ url_for('main.subscribe') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="email" name="email" placeholder="Your email" required />
+                <button type="submit">Subscribe</button>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- Bottom -->
+    <div class="footer-bottom">
+        <p>&copy; 2026 FoodStuff Market. All rights reserved.</p>
+
+        <div class="socials">
+            <a href="#">Facebook</a>
+            <a href="#">Instagram</a>
+            <a href="#">Twitter</a>
+            <a href="#">WhatsApp</a>
+        </div>
+    </div>
+
+</footer>

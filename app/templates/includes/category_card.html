@@ -1,0 +1,43 @@
+<a href="{{ url_for('main.category_products', slug=category.slug) }}" class="text-decoration-none category-link">
+
+    <div class="category-card shadow-sm rounded-4 overflow-hidden h-100 position-relative">
+
+        <!-- IMAGE -->
+        <div class="category-image position-relative">
+
+            {% set img = 'uploads/categories/' ~ category.image if category.image else 'images/default-category.png' %}
+
+            <img src="{{ url_for('static', filename=img) }}" alt="{{ category.name }}" class="w-100 category-img w-100" loading="eager" decoding="async" fetchpriority="low" style="height: 180px; object-fit: cover;" alt="{{ category.name }}">
+
+            <!-- DARK OVERLAY -->
+            <div class="overlay"></div>
+
+            <!-- PRODUCT COUNT BADGE -->
+            <div class="product-badge">
+                {{ category.products|length if category.products else 0 }} products
+            </div>
+
+        </div>
+
+        <!-- CONTENT -->
+        <div class="category-body text-center p-3">
+
+            <h5 class="category-title mb-1">
+                {{ category.name }}
+            </h5>
+
+            <p class="category-desc mb-0">
+                {{ (category.description or 'Explore quality products in this category')[:75] }}
+                {% if category.description and category.description|length > 75 %}...{% endif %}
+            </p>
+
+        </div>
+
+        <!-- ARROW INDICATOR (JUMIA STYLE TOUCH) -->
+        <div class="go-icon">
+            →
+        </div>
+
+    </div>
+
+</a>

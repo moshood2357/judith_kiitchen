@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    .product-page {
+        padding: 40px 8%;
+    }
+
+    /* Layout */
+    .product-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    align-items: stretch; 
+}
+
+.product-image {
+    height: 100%;
+    min-height: 400px;
+}
+
+    /* IMAGE */
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        border-radius: 16px;
+        object-fit: cover;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    /* INFO */
+    .product-info h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 10px;
+    }
+
+    .product-category {
+        font-size: 14px;
+        color: #64748b;
+        margin-bottom: 15px;
+    }
+
+    /* PRICE */
+    .product-price {
+        font-size: 26px;
+        font-weight: 700;
+        color: #16a34a;
+        margin-bottom: 20px;
+    }
+
+    /* DESCRIPTION */
+    .product-description {
+        font-size: 15px;
+        color: #475569;
+        line-height: 1.7;
+        margin-bottom: 25px;
+    }
+
+    /* QUANTITY */
+    .quantity-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .quantity-box input {
+        width: 70px;
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        text-align: center;
+    }
+
+    /* BUTTONS */
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .add-cart-btn {
+        background: linear-gradient(135deg, #16a34a, #22c55e);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 10px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .add-cart-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Wishlist */
+    .wishlist-btn {
+        background: #f1f5f9;
+        padding: 12px 18px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+    }
+
+    /* TRUST */
+    .trust-box {
+        margin-top: 25px;
+        padding: 15px;
+        border-radius: 12px;
+        background: #f8fafc;
+        font-size: 14px;
+        color: #475569;
+    }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+        .product-wrapper {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="product-page ">
+
+    <div class="product-wrapper py-5">
+
+        <!-- IMAGE -->
+        <div class="product-image">
+            <img
+                src="{{ url_for('static', filename='uploads/' ~ product.image) if product.image else url_for('static', filename='images/default-product.png') }}">
+        </div>
+
+        <!-- INFO -->
+        <div class="product-info">
+
+            <h1>{{ product.name }}</h1>
+
+            <div class="product-category">
+                {{ product.category.name if product.category else 'Uncategorized' }}
+            </div>
+
+            <div class="product-price">
+                £{{ product.price }}
+            </div>
+
+            <div class="product-description">
+                {{ product.description or 'No description available for this product.' }}
+            </div>
+
+            <!-- QUANTITY -->
+            <form method="POST" action="{{ url_for('cart.add_to_cart', slug=product.slug) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="quantity-box">
+                    <label>Qty:</label>
+                    <input type="number" class="qty-input" name="quantity" value="1" min="1" disabled>
+                </div>
+
+                <!-- ACTION BUTTONS -->
+                <div class="action-buttons">
+                    <!-- 🛒 ADD TO CART -->
+                    {% if product.id in cart_product_ids %}
+                    
+                    <a href="{{ url_for('cart.view_cart') }}" class="btn btn-success rounded-pill px-3">
+                        View Cart
+                    </a>
+                    
+                    {% else %}
+                    
+                    <button type="button" class="btn btn-success rounded-pill px-3 add-to-cart-btn" data-slug="{{ product.slug }}"
+                        data-csrf="{{ csrf_token() }}">
+                        Add to cart
+                    </button>
+                    {% endif %}
+    
+
+                    <button type="button" class="wishlist-btn">
+                        ❤️ Save
+                    </button>
+                </div>
+            </form>
+
+            <!-- TRUST SIGNALS -->
+            <div class="trust-box">
+                ✔ Fresh & quality guaranteed <br>
+                ✔ Fast delivery across Gloucester, Cheltenham, Cotswold, Tewkesbury,<br>
+                Forest of Dean, Stroud, Bishop Cleeve <br>
+                ✔ Secure payment options
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

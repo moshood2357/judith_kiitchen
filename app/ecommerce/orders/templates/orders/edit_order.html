@@ -1,0 +1,376 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    .edit-order-page {
+        padding: 24px;
+        max-width: 860px;
+        margin: 80px auto;
+    }
+
+    .edit-order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 28px;
+    }
+
+    .edit-order-header h2 {
+        margin: 0;
+        font-size: 1.4rem;
+        color: #0f172a;
+    }
+
+    .edit-order-header small {
+        color: #64748b;
+        display: block;
+        margin-top: 4px;
+    }
+
+    .back-btn {
+        padding: 8px 16px;
+        background: #f1f5f9;
+        border-radius: 6px;
+        text-decoration: none;
+        color: #334155;
+        font-size: 0.875rem;
+    }
+
+    .back-btn:hover {
+        background: #e2e8f0;
+    }
+
+    .edit-section {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 24px;
+        margin-bottom: 20px;
+    }
+
+    .edit-section h3 {
+        margin: 0 0 20px;
+        font-size: 1rem;
+        color: #1e293b;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 10px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .form-group.full {
+        grid-column: 1 / -1;
+    }
+
+    .form-group label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 9px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        color: #1e293b;
+        background: #fff;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .order-items-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .order-items-table th,
+    .order-items-table td {
+        padding: 10px 12px;
+        text-align: left;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.9rem;
+    }
+
+    .order-items-table th {
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+    }
+
+    .product-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .product-cell img {
+        width: 38px;
+        height: 38px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+
+    .summary-rows {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+        color: #475569;
+    }
+
+    .summary-row.total {
+        border-top: 1px solid #e2e8f0;
+        padding-top: 10px;
+        font-size: 1rem;
+        color: #0f172a;
+        font-weight: 700;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 10px;
+    }
+
+    .btn-save {
+        padding: 10px 24px;
+        background: #6366f1;
+        color: #fff;
+        border: none;
+        border-radius: 7px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .btn-save:hover {
+        background: #4f46e5;
+    }
+
+    .btn-cancel {
+        padding: 10px 24px;
+        background: #f1f5f9;
+        color: #334155;
+        border: none;
+        border-radius: 7px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .btn-cancel:hover {
+        background: #e2e8f0;
+    }
+
+    @media (max-width: 600px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .edit-order-page {
+            margin: 20px;
+            padding: 16px;
+        }
+    }
+</style>
+
+<div class="edit-order-page">
+
+    <!-- HEADER -->
+    <div class="edit-order-header">
+        <div>
+            <h2>Edit Order — {{ order.order_number }}</h2>
+            <small>Placed on {{ order.created_at.strftime("%d %b %Y, %I:%M %p") }}</small>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="back-btn">← Back to dashboard</a>
+    </div>
+
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <!-- ORDER STATUS -->
+        <div class="edit-section">
+            <h3>Order Status</h3>
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>Order Status</label>
+                    <select name="status">
+                        <option value="processing" {% if order.status.value=='processing' %}selected{% endif %}>
+                            Processing</option>
+                        <option value="shipped" {% if order.status.value=='shipped' %}selected{% endif %}>Shipped
+                        </option>
+                        <option value="delivered" {% if order.status.value=='delivered' %}selected{% endif %}>Delivered
+                        </option>
+                        <option value="cancelled" {% if order.status.value=='cancelled' %}selected{% endif %}>Cancelled
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Status</label>
+                    <select name="payment_status">
+                        <option value="unpaid" {% if order.payment_status.value=='unpaid' %}selected{% endif %}>Unpaid
+                        </option>
+                        <option value="paid" {% if order.payment_status.value=='paid' %}selected{% endif %}>Paid
+                        </option>
+                        <option value="failed" {% if order.payment_status.value=='failed' %}selected{% endif %}>Failed
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Delivery Method</label>
+                    <select name="delivery_method">
+                        <option value="standard" {% if order.delivery_method=='standard' %}selected{% endif %}>Standard
+                        </option>
+                        <option value="express" {% if order.delivery_method=='express' %}selected{% endif %}>Express
+                        </option>
+                    </select>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SHIPPING ADDRESS -->
+        <div class="edit-section">
+            <h3>Shipping Address</h3>
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="full_name" value="{{ order.address.full_name }}">
+                </div>
+
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="text" name="phone" value="{{ order.address.phone }}">
+                </div>
+
+                <div class="form-group full">
+                    <label>Address Line 1</label>
+                    <input type="text" name="address_line_1" value="{{ order.address.address_line_1 }}">
+                </div>
+
+                <div class="form-group full">
+                    <label>Address Line 2</label>
+                    <input type="text" name="address_line_2" value="{{ order.address.address_line_2 or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label>City</label>
+                    <input type="text" name="city" value="{{ order.address.city }}">
+                </div>
+
+                <div class="form-group">
+                    <label>State</label>
+                    <input type="text" name="state" value="{{ order.address.state }}">
+                </div>
+
+                <div class="form-group">
+                    <label>Country</label>
+                    <input type="text" name="country" value="{{ order.address.country }}">
+                </div>
+
+                <div class="form-group">
+                    <label>Postal Code</label>
+                    <input type="text" name="postal_code" value="{{ order.address.postal_code or '' }}">
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ORDER ITEMS (READ ONLY) -->
+        <div class="edit-section">
+            <h3>Items</h3>
+            <table class="order-items-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        <th>Line Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items %}
+                    <tr>
+                        <td>
+                            <div class="product-cell">
+                                {% if item.product_image %}
+                                <img src="{{ item.product_image }}" alt="{{ item.product_name }}">
+                                {% endif %}
+                                <span>{{ item.product_name or '—' }}</span>
+                            </div>
+                        </td>
+                        <td>{{ item.quantity }}</td>
+                        <td>£{{ "{:,.2f}".format(item.price or 0) }}</td>
+                        <td>£{{ "{:,.2f}".format((item.price or 0) * item.quantity) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ORDER SUMMARY (READ ONLY) -->
+        <div class="edit-section">
+            <h3>Summary</h3>
+            <div class="summary-rows">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span>£{{ "{:,.2f}".format(order.subtotal or 0) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Shipping</span>
+                    <span>£{{ "{:,.2f}".format(order.shipping_fee or 0) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Tax</span>
+                    <span>£{{ "{:,.2f}".format(order.tax or 0) }}</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span>£{{ "{:,.2f}".format(order.total_amount or 0) }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="form-actions">
+            <a href="{{ url_for('admin.orders') }}" class="btn-cancel">Cancel</a>
+            <button type="submit" class="btn-save">Save Changes</button>
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

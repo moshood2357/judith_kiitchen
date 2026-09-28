@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    /* =========================
+   PAGE WRAPPER (FIX NAVBAR OFFSET)
+========================= */
+    .register-page {
+
+        /* fixed navbar offset */
+        min-height: 100vh;
+        display: flex;
+        background: #f8fafc;
+    }
+
+    /* =========================
+   CENTER WRAPPER
+========================= */
+    .auth-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        /* IMPORTANT: prevents navbar clash */
+        padding: 40px 15px;
+    }
+
+    /* =========================
+   CARD
+========================= */
+    .auth-card {
+        width: 100%;
+        max-width: 480px;
+        background: #fff;
+        padding: 35px;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        animation: fadeIn 0.4s ease-in-out;
+    }
+
+    /* TITLE */
+    .auth-card h2 {
+        text-align: center;
+        margin-bottom: 25px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    /* INPUT GRID */
+    .auth-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    /* INPUTS */
+    .auth-card input {
+        width: 100%;
+        padding: 12px 14px;
+        margin-bottom: 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        outline: none;
+        transition: 0.3s;
+    }
+
+    .auth-card input:focus {
+        border-color: #38bdf8;
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+
+    /* BUTTON */
+    .auth-card button {
+        width: 100%;
+        padding: 12px;
+        background: #22c55e;
+        color: #fff;
+        font-weight: 600;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.3s;
+        margin-top: 5px;
+    }
+
+    .auth-card button:hover {
+        background: #16a34a;
+    }
+
+    /* FOOTER */
+    .auth-footer {
+        text-align: center;
+        margin-top: 15px;
+        font-size: 14px;
+    }
+
+    /* ANIMATION */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="register-page">
+    <div class="auth-wrapper">
+        <div class="auth-card">
+
+            <h2>Create Account</h2>
+
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="auth-row">
+                    <input type="text" name="first_name" placeholder="First Name" required>
+                    <input type="text" name="last_name" placeholder="Last Name" required>
+                </div>
+
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="email" name="email" placeholder="Email" required>
+                <input type="text" name="phone" placeholder="Phone (optional)">
+                <input type="password" name="password" placeholder="Password" required>
+
+                <button type="submit">Create Account</button>
+            </form>
+
+            <div class="auth-footer">
+                Already have an account?
+                <a href="{{ url_for('auth.login') }}">Login</a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

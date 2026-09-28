@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Judith's Kitchen · Orders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cocoa: #2E1A12;        /* page background */
+    --cocoa-2: #3D2418;      /* preparing panel */
+    --plantain: #F2B84B;     /* preparing numbers */
+    --leaf: #1D5C43;         /* ready panel */
+    --leaf-glow: #7FE0B0;    /* new-ready highlight */
+    --cream: #FFF6E6;        /* ready numbers + text */
+    --muted: #C9A98F;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--cocoa);
+    color: var(--cream);
+    font-family: "Bricolage Grotesque", "Segoe UI", Roboto, Arial, sans-serif;
+    font-variant-numeric: tabular-nums;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    overflow: hidden;
+    cursor: none;
+  }
+  header {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 2.2vh 3vw 1.6vh;
+  }
+  .brand { font-weight: 800; font-size: 3.4vw; letter-spacing: -0.02em; }
+  .clock { font-weight: 500; font-size: 2.6vw; color: var(--muted); }
+
+  main {
+    display: grid;
+    grid-template-columns: 2fr 3fr;   /* ready gets more room - it's what people scan for */
+    gap: 1.5vw;
+    padding: 0 3vw;
+    min-height: 0;
+  }
+  section {
+    border-radius: 2vw;
+    padding: 2.5vh 2vw;
+    display: flex; flex-direction: column;
+    min-height: 0; overflow: hidden;
+  }
+  .preparing { background: var(--cocoa-2); }
+  .ready { background: var(--leaf); }
+
+  h2 { font-weight: 800; font-size: 2.8vw; margin-bottom: 2vh; }
+  .preparing h2 { color: var(--plantain); }
+  .ready h2 { color: var(--cream); }
+
+  /* Full order numbers stacked one under another. When a column is full
+     they carry on in a second column beside it, never overlapping. */
+  .numbers {
+    --fit: 1;
+    flex: 1; min-height: 0;
+    display: flex; flex-direction: column; flex-wrap: wrap;
+    align-content: flex-start; align-items: flex-start;
+    gap: 1.2vh 3vw;
+  }
+
+  .num {
+    font-weight: 800; line-height: 1.1; border-radius: 1vw;
+    white-space: nowrap; letter-spacing: -0.01em;
+  }
+  /* --fit is lowered by the script when a column fills up, so every
+     number stays on screen. */
+  .preparing .num { font-size: calc(3.4vw * var(--fit)); color: var(--plantain); }
+  .ready .num {
+    font-size: calc(4.6vw * var(--fit)); color: var(--cream);
+    padding: .4vh .8vw; margin-left: -.8vw;
+  }
+
+  /* One deliberate moment: a number that has just turned ready glows for a while */
+  .ready .num.fresh { animation: arrive 1.2s ease-out 4 alternate; }
+  @keyframes arrive {
+    from { background: transparent; color: var(--cream); }
+    to   { background: var(--leaf-glow); color: var(--cocoa); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ready .num.fresh { animation: none; background: var(--leaf-glow); color: var(--cocoa); }
+  }
+
+  .empty { font-size: 2vw; color: var(--muted); font-weight: 500; width: 100%; }
+  .ready .empty { color: #B9DCCB; }
+
+  footer {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.6vh 3vw 2.2vh;
+    font-size: 1.6vw; color: var(--muted);
+  }
+  /* Quiet staff-facing indicator: a small dot + "Updated 9:43 PM" when the
+     connection has been down for a while. Customers just see the last numbers. */
+  .status {
+    display: flex; align-items: center; gap: .6vw;
+    font-size: 1.3vw; color: var(--muted);
+    opacity: 0; transition: opacity .6s;
+  }
+  .status::before {
+    content: ""; width: .8vw; height: .8vw; border-radius: 50%;
+    background: var(--plantain);
+  }
+  .status.show { opacity: .8; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand">Judith's Kitchen</div>
+    <div class="clock" id="clock"></div>
+  </header>
+
+  <main>
+    <section class="preparing">
+      <h2>Preparing</h2>
+      <div class="numbers" id="preparing"></div>
+    </section>
+    <section class="ready">
+      <h2>Ready to collect</h2>
+      <div class="numbers" id="ready"></div>
+    </section>
+  </main>
+
+  <footer>
+    <span>When your number shows under Ready, please come to the counter.</span>
+    <span class="status" id="status" aria-live="polite"></span>
+  </footer>
+
+<script>
+  const POLL_MS = 4000;
+  const DATA_URL = "{{ url_for('order_board.order_board_data') }}";
+  const prepEl = document.getElementById("preparing");
+  const readyEl = document.getElementById("ready");
+  const statusEl = document.getElementById("status");
+
+  let knownReady = null;      // null until first load, so nothing glows on page open
+  let lastPayload = "";
+  let failures = 0;
+
+  function tick() {
+    document.getElementById("clock").textContent =
+      new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+  tick(); setInterval(tick, 10000);
+
+  function render(el, nums, emptyText, freshSet) {
+    el.replaceChildren();
+    if (!nums.length) {
+      const p = document.createElement("p");
+      p.className = "empty";
+      p.textContent = emptyText;
+      el.appendChild(p);
+      return;
+    }
+    for (const n of nums) {
+      const d = document.createElement("div");
+      d.className = "num" + (freshSet && freshSet.has(n) ? " fresh" : "");
+      d.textContent = n;
+      el.appendChild(d);
+    }
+    fit(el);
+  }
+
+  // Shrink a column's numbers until they all fit inside its panel
+  function fit(el) {
+    let scale = 1;
+    el.style.setProperty("--fit", scale);
+    // Numbers stack down, then continue in a new column to the right, so a
+    // full panel shows up as a number sticking out past the right edge.
+    const overflowing = () => {
+      const box = el.getBoundingClientRect();
+      return [...el.children].some(c => {
+        const r = c.getBoundingClientRect();
+        return r.right > box.right + 1 || r.bottom > box.bottom + 1;
+      });
+    };
+    while (overflowing() && scale > 0.4) {
+      scale -= 0.05;
+      el.style.setProperty("--fit", scale.toFixed(2));
+    }
+  }
+  window.addEventListener("resize", () => { fit(prepEl); fit(readyEl); });
+
+  const FETCH_TIMEOUT_MS = 8000;   // a hung request must never stop the loop
+  const MAX_BACKOFF_MS = 10000;    // recover within ~10s once the server is back
+  const SHOW_STATUS_AFTER_MS = 20000; // ignore short blips
+  let lastSuccess = Date.now();
+
+  function timeLabel(d) {
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function markFailure() {
+    failures++;
+    // Measure from the last good update, so hung requests count too
+    if (Date.now() - lastSuccess >= SHOW_STATUS_AFTER_MS) {
+      statusEl.textContent = "Updated " + timeLabel(new Date(lastSuccess));
+      statusEl.classList.add("show");     // last numbers stay on screen
+    }
+  }
+
+  let nextPoll = null;
+  let inFlight = false;
+
+  async function poll() {
+    if (inFlight) return;          // never run two loops at once
+    inFlight = true;
+    clearTimeout(nextPoll);
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
+    try {
+      const res = await fetch(DATA_URL + "?t=" + Date.now(), {
+        cache: "no-store", signal: ctrl.signal
+      });
+      // Passenger error pages are HTML, not JSON - treat as a failed poll
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || res.status);
+
+      failures = 0;
+      lastSuccess = Date.now();
+      statusEl.classList.remove("show");
+
+      const payload = JSON.stringify(data);
+      if (payload !== lastPayload) {
+        lastPayload = payload;
+        const fresh = new Set(
+          knownReady ? data.ready.filter(n => !knownReady.has(n)) : []
+        );
+        render(prepEl, data.preparing, "No orders in the kitchen right now", null);
+        render(readyEl, data.ready, "Nothing waiting — fresh orders will appear here", fresh);
+        knownReady = new Set(data.ready);
+      }
+    } catch (e) {
+      markFailure();
+    } finally {
+      clearTimeout(timer);
+      inFlight = false;
+      nextPoll = setTimeout(poll, failures ? Math.min(POLL_MS * failures, MAX_BACKOFF_MS) : POLL_MS);
+    }
+  }
+  poll();
+
+  // When the TV's Wi-Fi comes back, don't wait for the next backoff step
+  window.addEventListener("online", () => poll());
+
+  // Smart TVs leak memory over long sessions; refresh quietly every 3 hours
+  setTimeout(() => location.reload(), 3 * 60 * 60 * 1000);
+</script>
+</body>
+</html>
